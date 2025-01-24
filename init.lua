@@ -189,6 +189,56 @@ vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right win
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<C-k>', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 
+-- Speed improvements neovim
+--
+-- Quick save
+
+-- Quick quit
+vim.keymap.set('n', '<leader>q', ':q<CR>', { desc = 'Quick [Q]uit' })
+
+-- Center cursor when moving half-page up/down
+vim.keymap.set('n', '<C-u>', '<C-u>zz', { desc = 'Move half-page up and center' })
+vim.keymap.set('n', '<C-d>', '<C-d>zz', { desc = 'Move half-page down and center' })
+
+-- Center cursor when searching
+vim.keymap.set('n', 'n', 'nzzzv', { desc = 'Next search result and center' })
+vim.keymap.set('n', 'N', 'Nzzzv', { desc = 'Previous search result and center' })
+
+-- Move lines up and down in visual mode
+vim.keymap.set('v', 'J', ":m '>+1<CR>gv=gv", { desc = 'Move line down' })
+vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv", { desc = 'Move line up' })
+
+-- Keep cursor position when joining lines
+vim.keymap.set('n', 'J', 'mzJ`z', { desc = 'Join lines and keep cursor position' })
+
+-- Quick buffer navigation
+vim.keymap.set('n', '<leader>bw', ':w<CR>', { desc = '[B]uffer [W]rite (save)' })
+vim.keymap.set('n', '<leader>bn', ':bnext<CR>', { desc = '[B]uffer [N]ext' })
+vim.keymap.set('n', '<leader>bp', ':bprevious<CR>', { desc = '[B]uffer [P]revious' })
+vim.keymap.set('n', '<leader>bd', ':bdelete<CR>', { desc = '[B]uffer [D]elete' })
+
+-- Split window navigation improvements
+vim.keymap.set('n', '<leader>sv', ':vsplit<CR>', { desc = '[S]plit [V]ertical' })
+vim.keymap.set('n', '<leader>sh', ':split<CR>', { desc = '[S]plit [H]orizontal' })
+
+-- Quick tab navigation
+vim.keymap.set('n', '<leader>tn', ':tabnew<CR>', { desc = '[T]ab [N]ew' })
+vim.keymap.set('n', '<leader>tc', ':tabclose<CR>', { desc = '[T]ab [C]lose' })
+vim.keymap.set('n', '<leader>to', ':tabonly<CR>', { desc = '[T]ab [O]nly - close others' })
+vim.keymap.set('n', '<leader>gt', function()
+  if vim.fn.tabpagenr '$' == vim.fn.tabpagenr() then
+    vim.cmd 'tabfirst'
+  else
+    vim.cmd 'tabnext'
+  end
+end, { desc = '[g]o to next [t]ab (wraps to first)' })
+vim.keymap.set('n', '<leader>gT', function()
+  if vim.fn.tabpagenr() == 0 then
+    vim.cmd 'tablast'
+  else
+    vim.cmd 'tabp'
+  end
+end, { desc = '[g]o to prev [T]ab (wraps to last)' })
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
