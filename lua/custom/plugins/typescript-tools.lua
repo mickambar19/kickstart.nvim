@@ -4,6 +4,9 @@ return {
     dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
     opts = {
       settings = {
+        root_dir = function()
+          return vim.fn.getcwd()
+        end,
         -- Enable auto imports
         complete_function_calls = true,
         include_completions_with_insert_text = true,

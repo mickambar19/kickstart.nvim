@@ -1,5 +1,5 @@
 --[[
-
+--
 =====================================================================
 ==================== READ THIS BEFORE CONTINUING ====================
 =====================================================================
@@ -211,11 +211,11 @@ vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv", { desc = 'Move line up' })
 -- Keep cursor position when joining lines
 vim.keymap.set('n', 'J', 'mzJ`z', { desc = 'Join lines and keep cursor position' })
 
+vim.keymap.set('n', '<leader>fw', ':w<CR>', { desc = '[F]file [W]rite (save)' })
 -- Quick buffer navigation
-vim.keymap.set('n', '<leader>bw', ':w<CR>', { desc = '[B]uffer [W]rite (save)' })
-vim.keymap.set('n', '<leader>bn', ':bnext<CR>', { desc = '[B]uffer [N]ext' })
-vim.keymap.set('n', '<leader>bp', ':bprevious<CR>', { desc = '[B]uffer [P]revious' })
-vim.keymap.set('n', '<leader>bd', ':bdelete<CR>', { desc = '[B]uffer [D]elete' })
+vim.keymap.set('n', '<leader>fn', ':bnext<CR>', { desc = '[F]uffer [N]ext' })
+vim.keymap.set('n', '<leader>fp', ':bprevious<CR>', { desc = '[F]uffer [P]revious' })
+vim.keymap.set('n', '<leader>fd', ':bdelete<CR>', { desc = '[F]uffer [D]elete' })
 
 -- Split window navigation improvements
 vim.keymap.set('n', '<leader>sv', ':vsplit<CR>', { desc = '[S]plit [V]ertical' })
@@ -678,6 +678,24 @@ require('lazy').setup({
         --
         -- but for many setups, the lsp (`ts_ls`) will work just fine
         -- ts_ls = {},
+        eslint = {
+          on_attach = function(_, bufnr)
+            vim.keymap.set('n', '<leader>ef', ':EslintFixAll<CR>', {
+              buffer = bufnr,
+              desc = '[E]slint [F]ix all',
+            })
+          end,
+          settings = {
+            format = true,
+            quiet = false,
+            onIgnoredFiles = 'warn',
+            rulesCustomizations = {},
+            run = 'onType',
+            problems = {
+              shortenToSingleLine = false,
+            },
+          },
+        },
 
         lua_ls = {
           -- cmd = { ... },
@@ -737,12 +755,12 @@ require('lazy').setup({
     cmd = { 'ConformInfo' },
     keys = {
       {
-        '<leader>f',
+        '<leader>ff',
         function()
           require('conform').format { async = true, lsp_format = 'fallback' }
         end,
         mode = '',
-        desc = '[F]ormat buffer',
+        desc = '[F]ile [F]ormat',
       },
     },
     opts = {
