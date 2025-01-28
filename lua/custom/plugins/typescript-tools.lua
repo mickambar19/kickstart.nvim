@@ -36,6 +36,14 @@ return {
       vim.keymap.set('n', '<leader>co', ':TSToolsOrganizeImports<CR>', { desc = '[C]ode [O]rganize imports' })
       vim.keymap.set('n', '<leader>ci', ':TSToolsAddMissingImports<CR>', { desc = '[C]ode add missing [I]mports' })
       vim.keymap.set('n', '<leader>cf', ':TSToolsFixAll<CR>', { desc = '[C]ode [F]ix all' })
+
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = { 'typescript', 'typescriptreact' },
+        callback = function()
+          vim.opt_local.shiftwidth = 2
+          vim.opt_local.tabstop = 2
+        end,
+      })
     end,
   },
 }
