@@ -161,6 +161,8 @@ vim.opt.scrolloff = 10
 -- See `:help 'confirm'`
 vim.opt.confirm = true
 
+-- Use less space for tabs
+vim.opt.tabstop = 4
 -- [[ Basic Keymaps ]]
 --  See `:help vim.keymap.set()`
 
@@ -778,6 +780,7 @@ require('lazy').setup({
             staticcheck = true,
           },
         },
+        terraformls = {},
       }
 
       -- ensure the servers and tools above are installed
@@ -860,6 +863,7 @@ require('lazy').setup({
         typescriptreact = { 'prettierd', 'prettier', stop_after_first = true },
         json = { 'prettier' },
         jsonc = { 'prettier' },
+        terraform = { 'terraform_fmt' }, -- Install terraform cli not only the lsp
       },
       formatters = {
         jq = {
