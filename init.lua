@@ -1076,7 +1076,24 @@ require('lazy').setup({
     main = 'nvim-treesitter.configs', -- Sets main module to use for opts
     -- [[ Configure Treesitter ]] See `:help nvim-treesitter`
     opts = {
-      ensure_installed = { 'bash', 'c', 'diff', 'html', 'lua', 'luadoc', 'markdown', 'markdown_inline', 'query', 'vim', 'vimdoc', 'go' },
+      ensure_installed = {
+        'bash',
+        'c',
+        'diff',
+        'html',
+        'lua',
+        'luadoc',
+        'markdown',
+        'markdown_inline',
+        'query',
+        'vim',
+        'vimdoc',
+        -- Go-related parsers
+        'go',
+        'gomod',
+        'gosum',
+        'gowork',
+      },
       -- Autoinstall languages that are not installed
       auto_install = true,
       highlight = {
@@ -1087,6 +1104,9 @@ require('lazy').setup({
         additional_vim_regex_highlighting = { 'ruby' },
       },
       indent = { enable = true, disable = { 'ruby' } },
+      fold = {
+        enable = true,
+      },
     },
     -- There are additional nvim-treesitter modules that you can use to interact
     -- with nvim-treesitter. You should go explore a few and see what interests you:
