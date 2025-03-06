@@ -176,6 +176,24 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 -- or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
+--
+vim.keymap.set('n', '<leader>tl', function()
+  local number = vim.o.number
+  local relativenumber = vim.o.relativenumber
+
+  if number and relativenumber then
+    -- If both are on, turn off relative numbers but keep line numbers
+    vim.opt.relativenumber = false
+  elseif number and not relativenumber then
+    -- If only number is on, turn off both
+    vim.opt.number = false
+  else
+    -- If both are off, turn both on
+    vim.opt.number = true
+    vim.opt.relativenumber = true
+  end
+end, { desc = '[T]oggle [L]ine numbers' })
+
 -- TIP: Disable arrow keys in normal mode
 vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
 vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
@@ -725,14 +743,7 @@ require('lazy').setup({
             },
           },
         },
-        gopls = {
-          settings = {
-            analyses = {
-              unusedparams = true,
-            },
-            staticcheck = true,
-          },
-        },
+        gopls = {}, -- Go language server
         terraformls = {},
       }
 
@@ -754,6 +765,11 @@ require('lazy').setup({
         'stylua', -- used to format lua code
         'prettierd',
         'prettier',
+        'revive', -- Go linter
+        'gofumpt', -- Go formatter
+        'goimports', -- Go imports formatter
+        'golangci-lint', -- Comprehensive Go linting
+        'delve',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
