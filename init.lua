@@ -792,6 +792,7 @@ require('lazy').setup({
         },
         gopls = {}, -- Go language server
         terraformls = {},
+        ansiblels = {},
       }
 
       -- ensure the servers and tools above are installed
@@ -817,6 +818,7 @@ require('lazy').setup({
         'goimports', -- Go imports formatter
         'golangci-lint', -- Comprehensive Go linting
         'delve',
+        'ansible-lint',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
