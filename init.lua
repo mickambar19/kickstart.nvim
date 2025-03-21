@@ -710,6 +710,8 @@ require('lazy').setup({
         --
         -- but for many setups, the lsp (`ts_ls`) will work just fine
         -- ts_ls = {},
+        pyright = {}, -- Microsoft's Python LSP for type checking
+        ruff_lsp = {}, -- Fast Python linter and formatter
         eslint = {
           on_attach = function(_, bufnr)
             vim.keymap.set('n', '<leader>ef', ':EslintFixAll<CR>', {
@@ -772,6 +774,12 @@ require('lazy').setup({
         'golangci-lint', -- Comprehensive Go linting
         'delve',
         'ansible-lint',
+        -- Python tools
+        'pyright', -- Python LSP
+        'ruff-lsp', -- Fast Python linter & formatter
+        'debugpy', -- Python debugger
+        'black', -- Python formatter (alternative to ruff)
+        'isort', -- Python import sorter
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -837,6 +845,7 @@ require('lazy').setup({
         json = { 'prettier' },
         jsonc = { 'prettier' },
         terraform = { 'terraform_fmt' }, -- Install terraform cli not only the lsp
+        python = { 'ruff_format', 'ruff_fix', 'isort' },
       },
       formatters = {
         jq = {
@@ -1044,6 +1053,8 @@ require('lazy').setup({
         'gomod',
         'gosum',
         'gowork',
+        -- Python
+        'python',
       },
       -- Autoinstall languages that are not installed
       auto_install = true,
