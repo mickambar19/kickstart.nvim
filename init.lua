@@ -748,6 +748,7 @@ require('lazy').setup({
         gopls = {}, -- Go language server
         terraformls = {},
         ansiblels = {},
+        bashls = {},
       }
 
       -- ensure the servers and tools above are installed
@@ -780,6 +781,8 @@ require('lazy').setup({
         'debugpy', -- Python debugger
         'black', -- Python formatter (alternative to ruff)
         'isort', -- Python import sorter
+        -- Bash
+        'shfmt',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -846,8 +849,13 @@ require('lazy').setup({
         jsonc = { 'prettier' },
         terraform = { 'terraform_fmt' }, -- Install terraform cli not only the lsp
         python = { 'ruff_format', 'ruff_fix', 'isort' },
+        bash = { 'shfmt' },
+        sh = { 'shfmt' },
       },
       formatters = {
+        shfmt = {
+          prepend_args = { '-i', '2', '-ci' }, -- 2-space indent, indent switch cases
+        },
         jq = {
           -- Optional: Configure jq arguments
           args = { '--indent', '2' },
