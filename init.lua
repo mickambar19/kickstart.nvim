@@ -410,7 +410,7 @@ require('lazy').setup({
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
     event = 'VimEnter',
-    branch = '0.1.8',
+    tag = '0.1.8',
     dependencies = {
       'nvim-lua/plenary.nvim',
       { -- If encountering errors, see telescope-fzf-native README for installation instructions
@@ -578,6 +578,12 @@ require('lazy').setup({
       --    That is to say, every time a new file is opened that is associated with
       --    an lsp (for example, opening `main.rs` is associated with `rust_analyzer`) this
       --    function will be executed to configure the current buffer
+      vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
+        pattern = { '*.sh', '*.bash', '.bashrc', '.bash_*' },
+        callback = function()
+          vim.opt_local.filetype = 'bash'
+        end,
+      })
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
         callback = function(event)
@@ -748,7 +754,14 @@ require('lazy').setup({
         gopls = {}, -- Go language server
         terraformls = {},
         ansiblels = {},
-        bashls = {},
+        bashls = {
+          filetypes = { 'sh', 'bash' },
+          settings = {
+            bashIde = {
+              globPattern = '*@(.sh|.inc|.bash|.command)',
+            },
+          },
+        },
       }
 
       -- ensure the servers and tools above are installed
