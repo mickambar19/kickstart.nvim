@@ -661,7 +661,6 @@ require('lazy').setup({
               return client.supports_method(method, { bufnr = bufnr })
             end
           end
-
           map('<C-s>', vim.lsp.buf.signature_help, 'See [S]ignature', { 'i' })
           -- Toogle signature in normal mode
           map('<leader>ts', vim.lsp.buf.hover, '[T]oggle [S]ignature', { 'n' })
@@ -705,7 +704,6 @@ require('lazy').setup({
           end
         end,
       })
-
       -- Diagnostic Config
       -- See :help vim.diagnostic.Opts
       vim.diagnostic.config {
