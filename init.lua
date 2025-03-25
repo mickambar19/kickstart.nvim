@@ -802,7 +802,7 @@ require('lazy').setup({
             },
           },
         },
-
+        bashls = {},
         -- gopls = {}, -- Go language server
         -- terraformls = {},
         -- ansiblels = {},
