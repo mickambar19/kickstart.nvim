@@ -788,7 +788,6 @@ require('lazy').setup({
             },
           },
         },
-        ruff = {},
         pyright = {
           settings = {
             pyright = {
@@ -839,12 +838,9 @@ require('lazy').setup({
         'gofumpt', -- Go formatter
         'goimports', -- Go imports formatter
         'golangci-lint', -- Comprehensive Go linting
-        'delve',
         'ansible-lint',
         -- Python tools
-        -- 'ruff-lsp',
-        'debugpy', -- Python debugger
-        'black', -- Python formatter (alternative to ruff)
+        'ruff',
         'isort', -- Python import sorter
         -- Bash
         'shfmt',
@@ -911,7 +907,7 @@ require('lazy').setup({
         json = { 'prettier' },
         jsonc = { 'prettier' },
         terraform = { 'terraform_fmt' }, -- Install terraform cli not only the lsp
-        python = { 'ruff_format', 'ruff_fix', 'isort' },
+        python = { 'ruff' },
         bash = { 'shfmt' },
         sh = { 'shfmt' },
       },
