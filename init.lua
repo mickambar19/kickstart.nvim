@@ -593,12 +593,6 @@ require('lazy').setup({
       --    That is to say, every time a new file is opened that is associated with
       --    an lsp (for example, opening `main.rs` is associated with `rust_analyzer`) this
       --    function will be executed to configure the current buffer
-      vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
-        pattern = { '*.sh', '*.bash', '.bashrc', '.bash_*' },
-        callback = function()
-          vim.opt_local.filetype = 'bash'
-        end,
-      })
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
         callback = function(event)
@@ -761,8 +755,6 @@ require('lazy').setup({
         --
         -- but for many setups, the lsp (`ts_ls`) will work just fine
         -- ts_ls = {},
-        pyright = {}, -- Microsoft's Python LSP for type checking
-        ruff_lsp = {}, -- Fast Python linter and formatter
         eslint = {
           on_attach = function(_, bufnr)
             vim.keymap.set('n', '<leader>ef', ':EslintFixAll<CR>', {
@@ -796,17 +788,33 @@ require('lazy').setup({
             },
           },
         },
-        gopls = {}, -- Go language server
-        terraformls = {},
-        ansiblels = {},
-        bashls = {
-          filetypes = { 'sh', 'bash' },
+        ruff = {},
+        pyright = {
           settings = {
-            bashIde = {
-              globPattern = '*@(.sh|.inc|.bash|.command)',
+            pyright = {
+              -- Using Ruff's import organizer
+              disableOrganizeImports = true,
+            },
+            python = {
+              analysis = {
+                -- Ignore all files for analysis to exclusively use Ruff for linting
+                ignore = { '*' },
+              },
             },
           },
         },
+
+        -- gopls = {}, -- Go language server
+        -- terraformls = {},
+        -- ansiblels = {},
+        -- bashls = {
+        --   filetypes = { 'sh', 'bash' },
+        --   settings = {
+        --     bashIde = {
+        --       globPattern = '*@(.sh|.inc|.bash|.command)',
+        --     },
+        --   },
+        -- },
       }
 
       -- ensure the servers and tools above are installed
@@ -834,8 +842,7 @@ require('lazy').setup({
         'delve',
         'ansible-lint',
         -- Python tools
-        'pyright', -- Python LSP
-        'ruff-lsp', -- Fast Python linter & formatter
+        -- 'ruff-lsp',
         'debugpy', -- Python debugger
         'black', -- Python formatter (alternative to ruff)
         'isort', -- Python import sorter
