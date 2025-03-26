@@ -281,6 +281,14 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
+-- Support ansible in certain folders
+vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
+  pattern = { '*/playbooks/*.yml', '*/roles/*.yml', '*/tasks/*.yml', '*ansible*.yml', '*.yaml' },
+  callback = function()
+    vim.bo.filetype = 'yaml.ansible'
+  end,
+})
+
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -827,8 +835,10 @@ require('lazy').setup({
         },
         bashls = {},
         gopls = {},
-        -- terraformls = {},
-        -- ansiblels = {},
+        terraformls = {},
+        ansiblels = {
+          filetypes = { 'yaml.ansible', 'ansible' },
+        },
       }
 
       -- ensure the servers and tools above are installed
@@ -924,8 +934,14 @@ require('lazy').setup({
         bash = { 'shfmt' },
         sh = { 'shfmt' },
         go = { 'goimports', 'gofumpt' },
+        -- ansible = { 'ansiblelint' },
       },
       formatters = {
+        -- ansiblelint = {
+        --   command = 'ansible-lint',
+        --   args = { '--fix', '--format', 'parseable', '-' },
+        --   stdin = true,
+        -- },
         shfmt = {
           prepend_args = { '-i', '2', '-ci' }, -- 2-space indent, indent switch cases
         },
