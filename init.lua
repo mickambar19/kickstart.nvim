@@ -281,6 +281,14 @@ vim.api.nvim_create_autocmd('TextYankPost', {
   end,
 })
 
+-- Support ansible in certain folders
+vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
+  pattern = { '*/playbooks/*.yml', '*/roles/*.yml', '*/tasks/*.yml', '*ansible*.yml', '*.yaml' },
+  callback = function()
+    vim.bo.filetype = 'yaml.ansible'
+  end,
+})
+
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -593,12 +601,6 @@ require('lazy').setup({
       --    That is to say, every time a new file is opened that is associated with
       --    an lsp (for example, opening `main.rs` is associated with `rust_analyzer`) this
       --    function will be executed to configure the current buffer
-      vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
-        pattern = { '*.sh', '*.bash', '.bashrc', '.bash_*' },
-        callback = function()
-          vim.opt_local.filetype = 'bash'
-        end,
-      })
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('kickstart-lsp-attach', { clear = true }),
         callback = function(event)
@@ -761,27 +763,48 @@ require('lazy').setup({
         --
         -- but for many setups, the lsp (`ts_ls`) will work just fine
         -- ts_ls = {},
-        pyright = {}, -- Microsoft's Python LSP for type checking
-        ruff_lsp = {}, -- Fast Python linter and formatter
         eslint = {
           on_attach = function(_, bufnr)
-            vim.keymap.set('n', '<leader>ef', ':EslintFixAll<CR>', {
+            vim.keymap.set('n', '<leader>ef', function()
+              vim.cmd 'EslintFixAll'
+              -- Optionally format with Prettier after ESLint fixes
+              require('conform').format { bufnr = bufnr, lsp_fallback = false }
+            end, {
               buffer = bufnr,
               desc = '[E]slint [F]ix all',
             })
           end,
           settings = {
-            format = true,
+            -- Enhanced settings
+            packageManager = 'npm', -- or 'yarn', 'pnpm'
+            useESLintClass = true, -- For newer ESLint
+            experimental = {
+              useFlatConfig = false, -- Set to true if using ESLint flat config
+            },
             quiet = false,
             onIgnoredFiles = 'warn',
             rulesCustomizations = {},
-            run = 'onType',
+            run = 'onType', -- or 'onSave'
             problems = {
               shortenToSingleLine = false,
             },
+
+            codeAction = {
+              disableRuleComment = {
+                enable = true,
+                location = 'separateLine',
+              },
+              showDocumentation = {
+                enable = true,
+              },
+            },
+
+            -- Advanced: specify workspaces/workspace folders configuration
+            workingDirectories = {
+              { mode = 'auto' }, -- auto-detect based on package.json or .eslintrc
+            },
           },
         },
-
         lua_ls = {
           -- cmd = { ... },
           -- filetypes = { ... },
@@ -796,16 +819,25 @@ require('lazy').setup({
             },
           },
         },
-        gopls = {}, -- Go language server
-        terraformls = {},
-        ansiblels = {},
-        bashls = {
-          filetypes = { 'sh', 'bash' },
+        pyright = {
           settings = {
-            bashIde = {
-              globPattern = '*@(.sh|.inc|.bash|.command)',
+            pyright = {
+              -- Using Ruff's import organizer
+              disableOrganizeImports = true,
+            },
+            python = {
+              analysis = {
+                -- Ignore all files for analysis to exclusively use Ruff for linting
+                ignore = { '*' },
+              },
             },
           },
+        },
+        bashls = {},
+        gopls = {},
+        terraformls = {},
+        ansiblels = {
+          filetypes = { 'yaml.ansible', 'ansible' },
         },
       }
 
@@ -825,19 +857,16 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- used to format lua code
+        'eslint_d',
         'prettierd',
         'prettier',
         'revive', -- Go linter
         'gofumpt', -- Go formatter
         'goimports', -- Go imports formatter
         'golangci-lint', -- Comprehensive Go linting
-        'delve',
         'ansible-lint',
         -- Python tools
-        'pyright', -- Python LSP
-        'ruff-lsp', -- Fast Python linter & formatter
-        'debugpy', -- Python debugger
-        'black', -- Python formatter (alternative to ruff)
+        'ruff',
         'isort', -- Python import sorter
         -- Bash
         'shfmt',
@@ -893,22 +922,26 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
         -- You can use 'stop_after_first' to run the first available formatter from the list
-        javascript = { 'prettierd', 'prettier', stop_after_first = true },
-        typescript = { 'prettierd', 'prettier', stop_after_first = true },
-        javascriptreact = { 'prettierd', 'prettier', stop_after_first = true },
-        typescriptreact = { 'prettierd', 'prettier', stop_after_first = true },
+        javascript = { 'eslint_d', 'prettierd', 'prettier', stop_after_first = true },
+        typescript = { 'eslint_d', 'prettierd', 'prettier', stop_after_first = true },
+        javascriptreact = { 'eslint_d', 'prettierd', 'prettier', stop_after_first = true },
+        typescriptreact = { 'eslint_d', 'prettierd', 'prettier', stop_after_first = true },
         json = { 'prettier' },
         jsonc = { 'prettier' },
         terraform = { 'terraform_fmt' }, -- Install terraform cli not only the lsp
-        python = { 'ruff_format', 'ruff_fix', 'isort' },
+        python = { 'ruff', 'isort ' },
         bash = { 'shfmt' },
         sh = { 'shfmt' },
+        go = { 'goimports', 'gofumpt' },
+        -- ansible = { 'ansiblelint' },
       },
       formatters = {
+        -- ansiblelint = {
+        --   command = 'ansible-lint',
+        --   args = { '--fix', '--format', 'parseable', '-' },
+        --   stdin = true,
+        -- },
         shfmt = {
           prepend_args = { '-i', '2', '-ci' }, -- 2-space indent, indent switch cases
         },

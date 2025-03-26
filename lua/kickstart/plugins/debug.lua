@@ -23,58 +23,59 @@ return {
 
     -- Add your own debuggers here
     'leoluz/nvim-dap-go',
+    'mfussenegger/nvim-dap-python',
   },
   keys = {
     -- Basic debugging keymaps, feel free to change to your liking!
     {
-      '<F5>',
+      '<leader>dc',
       function()
         require('dap').continue()
       end,
-      desc = 'Debug: Start/Continue',
+      desc = '[D]ebug [C]ontinue',
     },
     {
-      '<F1>',
+      '<leader>di',
       function()
         require('dap').step_into()
       end,
-      desc = 'Debug: Step Into',
+      desc = '[D]ebug step [I]nto',
     },
     {
-      '<F2>',
+      '<leader>dn',
       function()
         require('dap').step_over()
       end,
-      desc = 'Debug: Step Over',
+      desc = '[D]ebug [N]ext',
     },
     {
-      '<F3>',
+      '<leader>do',
       function()
         require('dap').step_out()
       end,
-      desc = 'Debug: Step Out',
+      desc = '[D]ebug step [O]ut',
     },
     {
-      '<leader>b',
+      '<leader>db',
       function()
         require('dap').toggle_breakpoint()
       end,
-      desc = 'Debug: Toggle Breakpoint',
+      desc = '[D]ebug [B]reakpoint Toggle',
     },
     {
-      '<leader>B',
+      '<leader>dt',
       function()
         require('dap').set_breakpoint(vim.fn.input 'Breakpoint condition: ')
       end,
-      desc = 'Debug: Set Breakpoint',
+      desc = '[D]ebug set [T]ext breakpoint',
     },
     -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
     {
-      '<F7>',
+      '<leader>dui',
       function()
         require('dapui').toggle()
       end,
-      desc = 'Debug: See last session result.',
+      desc = '[D]ebug [UI] Toggle',
     },
   },
   config = function()
@@ -106,6 +107,8 @@ return {
       --    Don't feel like these are good choices.
       icons = { expanded = '▾', collapsed = '▸', current_frame = '*' },
       controls = {
+        enabled = true,
+        element = 'repl',
         icons = {
           pause = '⏸',
           play = '▶',
@@ -118,19 +121,75 @@ return {
           disconnect = '⏏',
         },
       },
+      element_mappings = {},
+      expand_lines = true,
+      floating = {
+        border = 'single',
+        mappings = {
+          close = { 'q', '<Esc>' },
+        },
+      },
+      force_buffers = true,
+      layouts = {
+        {
+          elements = {
+            {
+              id = 'scopes',
+              size = 0.25,
+            },
+            {
+              id = 'breakpoints',
+              size = 0.25,
+            },
+            {
+              id = 'stacks',
+              size = 0.25,
+            },
+            {
+              id = 'watches',
+              size = 0.25,
+            },
+          },
+          position = 'left',
+          size = 40,
+        },
+        {
+          elements = { {
+            id = 'repl',
+            size = 0.5,
+          }, {
+            id = 'console',
+            size = 0.5,
+          } },
+          position = 'bottom',
+          size = 10,
+        },
+      },
+      mappings = {
+        edit = 'e',
+        expand = { '<CR>', '<2-LeftMouse>' },
+        open = 'o',
+        remove = 'd',
+        repl = 'r',
+        toggle = 't',
+      },
+      render = {
+        indent = 1,
+        max_value_lines = 100,
+      },
     }
 
     -- Change breakpoint icons
-    -- vim.api.nvim_set_hl(0, 'DapBreak', { fg = '#e51400' })
-    -- vim.api.nvim_set_hl(0, 'DapStop', { fg = '#ffcc00' })
-    -- local breakpoint_icons = vim.g.have_nerd_font
-    --     and { Breakpoint = '', BreakpointCondition = '', BreakpointRejected = '', LogPoint = '', Stopped = '' }
-    --   or { Breakpoint = '●', BreakpointCondition = '⊜', BreakpointRejected = '⊘', LogPoint = '◆', Stopped = '⭔' }
-    -- for type, icon in pairs(breakpoint_icons) do
-    --   local tp = 'Dap' .. type
-    --   local hl = (type == 'Stopped') and 'DapStop' or 'DapBreak'
-    --   vim.fn.sign_define(tp, { text = icon, texthl = hl, numhl = hl })
-    -- end
+    vim.api.nvim_set_hl(0, 'DapBreak', { fg = '#e51400' })
+    vim.api.nvim_set_hl(0, 'DapStop', { fg = '#ffcc00' })
+    local breakpoint_icons = vim.g.have_nerd_font
+        and { Breakpoint = '', BreakpointCondition = '', BreakpointRejected = '', LogPoint = '', Stopped = '' }
+      or { Breakpoint = '●', BreakpointCondition = '⊜', BreakpointRejected = '⊘', LogPoint = '◆', Stopped = '⭔' }
+    for type, icon in pairs(breakpoint_icons) do
+      local tp = 'Dap' .. type
+      local hl = (type == 'Stopped') and 'DapStop' or 'DapBreak'
+      vim.fn.sign_define(tp, { text = icon, texthl = hl, numhl = hl })
+    end
 
     dap.listeners.after.event_initialized['dapui_config'] = dapui.open
     dap.listeners.before.event_terminated['dapui_config'] = dapui.close
@@ -144,5 +203,19 @@ return {
         detached = vim.fn.has 'win32' == 0,
       },
     }
+
+    -- Python-specific test debugging
+    require('dap-python').test_runnet = 'pytest'
+    vim.keymap.set('n', '<leader>dt', function()
+      require('dap-python').test_method()
+    end, { desc = '[D]ebug [T]est method' })
+
+    vim.keymap.set('n', '<leader>dtc', function()
+      require('dap-python').test_class()
+    end, { desc = '[D]ebug [T]est [C]lass' })
+
+    vim.keymap.set('n', '<leader>ds', function()
+      require('dap-python').debug_selection()
+    end, { desc = '[D]ebug [S]election' })
   end,
 }
