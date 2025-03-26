@@ -757,23 +757,46 @@ require('lazy').setup({
         -- ts_ls = {},
         eslint = {
           on_attach = function(_, bufnr)
-            vim.keymap.set('n', '<leader>ef', ':EslintFixAll<CR>', {
+            vim.keymap.set('n', '<leader>ef', function()
+              vim.cmd 'EslintFixAll'
+              -- Optionally format with Prettier after ESLint fixes
+              require('conform').format { bufnr = bufnr, lsp_fallback = false }
+            end, {
               buffer = bufnr,
               desc = '[E]slint [F]ix all',
             })
           end,
           settings = {
-            format = true,
+            -- Enhanced settings
+            packageManager = 'npm', -- or 'yarn', 'pnpm'
+            useESLintClass = true, -- For newer ESLint
+            experimental = {
+              useFlatConfig = false, -- Set to true if using ESLint flat config
+            },
             quiet = false,
             onIgnoredFiles = 'warn',
             rulesCustomizations = {},
-            run = 'onType',
+            run = 'onType', -- or 'onSave'
             problems = {
               shortenToSingleLine = false,
             },
+
+            codeAction = {
+              disableRuleComment = {
+                enable = true,
+                location = 'separateLine',
+              },
+              showDocumentation = {
+                enable = true,
+              },
+            },
+
+            -- Advanced: specify workspaces/workspace folders configuration
+            workingDirectories = {
+              { mode = 'auto' }, -- auto-detect based on package.json or .eslintrc
+            },
           },
         },
-
         lua_ls = {
           -- cmd = { ... },
           -- filetypes = { ... },
@@ -803,17 +826,9 @@ require('lazy').setup({
           },
         },
         bashls = {},
-        -- gopls = {}, -- Go language server
+        gopls = {},
         -- terraformls = {},
         -- ansiblels = {},
-        -- bashls = {
-        --   filetypes = { 'sh', 'bash' },
-        --   settings = {
-        --     bashIde = {
-        --       globPattern = '*@(.sh|.inc|.bash|.command)',
-        --     },
-        --   },
-        -- },
       }
 
       -- ensure the servers and tools above are installed
@@ -832,6 +847,7 @@ require('lazy').setup({
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua', -- used to format lua code
+        'eslint_d',
         'prettierd',
         'prettier',
         'revive', -- Go linter
@@ -896,20 +912,18 @@ require('lazy').setup({
       end,
       formatters_by_ft = {
         lua = { 'stylua' },
-        -- Conform can also run multiple formatters sequentially
-        -- python = { "isort", "black" },
-        --
         -- You can use 'stop_after_first' to run the first available formatter from the list
-        javascript = { 'prettierd', 'prettier', stop_after_first = true },
-        typescript = { 'prettierd', 'prettier', stop_after_first = true },
-        javascriptreact = { 'prettierd', 'prettier', stop_after_first = true },
-        typescriptreact = { 'prettierd', 'prettier', stop_after_first = true },
+        javascript = { 'eslint_d', 'prettierd', 'prettier', stop_after_first = true },
+        typescript = { 'eslint_d', 'prettierd', 'prettier', stop_after_first = true },
+        javascriptreact = { 'eslint_d', 'prettierd', 'prettier', stop_after_first = true },
+        typescriptreact = { 'eslint_d', 'prettierd', 'prettier', stop_after_first = true },
         json = { 'prettier' },
         jsonc = { 'prettier' },
         terraform = { 'terraform_fmt' }, -- Install terraform cli not only the lsp
-        python = { 'ruff' },
+        python = { 'ruff', 'isort ' },
         bash = { 'shfmt' },
         sh = { 'shfmt' },
+        go = { 'goimports', 'gofumpt' },
       },
       formatters = {
         shfmt = {
