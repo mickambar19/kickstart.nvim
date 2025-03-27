@@ -15,13 +15,13 @@ return {
         typescriptreact = { 'eslint' },
       }
 
-      lint.linters.eslint.args = {
-        '--format',
-        'json',
-        '--cache',
-        '--max-warnings',
-        '0',
-      }
+      -- lint.linters.eslint.args = {
+      --   '--format',
+      --   'json',
+      --   '--cache',
+      --   '--max-warnings',
+      --   '0',
+      -- }
       -- To allow other plugins to add linters to require('lint').linters_by_ft,
       -- instead set linters_by_ft like this:
       -- lint.linters_by_ft = lint.linters_by_ft or {}
