@@ -9,10 +9,10 @@ return {
         -- markdown = { 'markdownlint' },
         go = { 'golangci-lint' },
 
-        javascript = { 'eslint' },
-        typescript = { 'eslint' },
-        javascriptreact = { 'eslint' },
-        typescriptreact = { 'eslint' },
+        -- javascript = { 'eslint' },
+        -- typescript = { 'eslint' },
+        -- javascriptreact = { 'eslint' },
+        -- typescriptreact = { 'eslint' },
       }
 
       -- lint.linters.eslint.args = {

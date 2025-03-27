@@ -240,6 +240,25 @@ vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv", { desc = 'Move line up' })
 vim.keymap.set('n', 'J', 'mzJ`z', { desc = 'Join lines and keep cursor position' })
 
 vim.keymap.set('n', '<leader>fw', ':w<CR>', { desc = '[F]file [W]rite (save)' })
+vim.keymap.set('n', '<leader>fW', function()
+  local old_eventignore = vim.opt.eventignore:get()
+  vim.opt.eventignore:append 'BufWritePre'
+
+  -- Save the file
+  vim.cmd 'write'
+
+  -- Restore previous eventignore setting
+  vim.opt.eventignore = old_eventignore
+  -- -- Temporarily disable format_on_save
+  -- local old_format_on_save = require('conform').format_on_save
+  -- require('conform').format_on_save = false
+  --
+  -- -- Save the file
+  -- vim.cmd 'write'
+  --
+  -- -- Restore the previous format_on_save setting
+  -- require('conform').format_on_save = old_format_on_save
+end, { desc = '[F]ile [W]rite without formatting' })
 -- Quick buffer navigation
 vim.keymap.set('n', '<leader>fn', ':bnext<CR>', { desc = '[F]uffer [N]ext' })
 vim.keymap.set('n', '<leader>fp', ':bprevious<CR>', { desc = '[F]uffer [P]revious' })
@@ -768,7 +787,6 @@ require('lazy').setup({
             vim.keymap.set('n', '<leader>ef', function()
               vim.cmd 'EslintFixAll'
               -- Optionally format with Prettier after ESLint fixes
-              require('conform').format { bufnr = bufnr, lsp_fallback = false }
             end, {
               buffer = bufnr,
               desc = '[E]slint [F]ix all',
@@ -930,7 +948,7 @@ require('lazy').setup({
         json = { 'prettier' },
         jsonc = { 'prettier' },
         terraform = { 'terraform_fmt' }, -- Install terraform cli not only the lsp
-        python = { 'ruff', 'isort ' },
+        python = { 'ruff', 'isort' },
         bash = { 'shfmt' },
         sh = { 'shfmt' },
         go = { 'goimports', 'gofumpt' },
