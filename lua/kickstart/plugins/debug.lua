@@ -202,10 +202,33 @@ return {
         -- See https://github.com/leoluz/nvim-dap-go/blob/main/README.md#configuring
         detached = vim.fn.has 'win32' == 0,
       },
+      dap_configurations = {
+        {
+          type = 'go',
+          name = 'Debug',
+          request = 'launch',
+          program = '${file}',
+        },
+        {
+          type = 'go',
+          name = 'Debug test', -- configuration for debugging test files
+          request = 'launch',
+          mode = 'test',
+          program = '${file}',
+        },
+        -- Works with go.mod packages and sub packages
+        {
+          type = 'go',
+          name = 'Debug test (go.mod)',
+          request = 'launch',
+          mode = 'test',
+          program = './${relativeFileDirname}',
+        },
+      },
     }
 
     -- Python-specific test debugging
-    require('dap-python').test_runnet = 'pytest'
+    require('dap-python').test_runner = 'pytest'
     vim.keymap.set('n', '<leader>dt', function()
       require('dap-python').test_method()
     end, { desc = '[D]ebug [T]est method' })

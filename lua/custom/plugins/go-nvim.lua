@@ -92,42 +92,6 @@ return {
             precedes = '‹',
             trail = '·',
           }
-          -- vim.opt_local.foldmethod = 'expr'
-          -- vim.opt_local.foldexpr = 'nvim_treesitter#foldexpr()'
-          -- -- Additional key mappings for Go files
-          -- local opts = { noremap = true, silent = true }
-          --
-          -- -- Safe loading of go modules
-          -- local function safe_require(module)
-          --   local ok, mod = pcall(require, module)
-          --   if ok then
-          --     return mod
-          --   end
-          --   return nil
-          -- end
-          --
-          -- local go_format = safe_require 'go.format'
-          -- local go_alternate = safe_require 'go.alternate'
-          -- local go_iferr = safe_require 'go.iferr'
-          -- local go_coverage = safe_require 'go.coverage'
-          --
-          -- if go_format then
-          --   vim.keymap.set('n', '<leader>gfs', go_format.gofmt, opts)
-          -- end
-          --
-          -- if go_alternate then
-          --   vim.keymap.set('n', '<leader>gat', go_alternate.toggle, opts)
-          -- end
-          --
-          -- if go_iferr then
-          --   vim.keymap.set('n', '<leader>gie', go_iferr.generate, opts)
-          -- end
-          --
-          -- vim.keymap.set('n', '<leader>gal', vim.lsp.buf.code_action, opts)
-          --
-          -- if go_coverage then
-          --   vim.keymap.set('n', '<leader>gtc', go_coverage.coverage, opts)
-          -- end
         end,
       })
     end,
@@ -136,48 +100,5 @@ return {
     -- Remove CmdlineEnter which might load the plugin too early
     -- event = { 'CmdlineEnter' },
     build = ':lua require("go.install").update_all_sync()',
-  },
-  {
-    'leoluz/nvim-dap-go',
-    dependencies = {
-      'mfussenegger/nvim-dap',
-      'rcarriga/nvim-dap-ui',
-    },
-    ft = { 'go' },
-    config = function()
-      require('dap-go').setup {
-        -- Adjust DAP configurations as needed
-        dap_configurations = {
-          {
-            type = 'go',
-            name = 'Debug',
-            request = 'launch',
-            program = '${file}',
-          },
-          {
-            type = 'go',
-            name = 'Debug test', -- configuration for debugging test files
-            request = 'launch',
-            mode = 'test',
-            program = '${file}',
-          },
-          -- Works with go.mod packages and sub packages
-          {
-            type = 'go',
-            name = 'Debug test (go.mod)',
-            request = 'launch',
-            mode = 'test',
-            program = './${relativeFileDirname}',
-          },
-        },
-      }
-
-      -- Set up DAP keymaps
-      vim.keymap.set('n', '<leader>db', require('dap').toggle_breakpoint, { desc = '[D]ebug [B]reakpoint Toggle ' })
-      vim.keymap.set('n', '<leader>dc', require('dap').continue, { desc = '[D]ebug [C]ontinue' })
-      vim.keymap.set('n', '<leader>dt', require('dap-go').debug_test, { desc = '[D]ebug Go [T]est' })
-      vim.keymap.set('n', '<leader>dui', require('dapui').toggle, { desc = '[D]ebug [UI] Toggle ' })
-      vim.keymap.set('n', '<leader>dd', require('dap').clear_breakpoints, { desc = '[D]ebug [D]elete Breakpoints' })
-    end,
   },
 }
