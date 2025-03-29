@@ -518,7 +518,7 @@ require('lazy').setup({
 
           -- Add custom file type handlers
           local filetype = vim.bo[event.buf].filetype
-          print(filetype)
+          -- print(filetype)
           local handler_path = 'config-lsp.filetype-handler.' .. filetype
           local filepath = vim.fn.stdpath 'config' .. '/lua/' .. handler_path:gsub('%.', '/') .. '.lua'
           local handler = nil
