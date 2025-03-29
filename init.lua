@@ -668,6 +668,7 @@ require('lazy').setup({
         ansiblels = {
           filetypes = { 'yaml.ansible', 'ansible' },
         },
+        dockerls = {},
       }
 
       -- ensure the servers and tools above are installed
