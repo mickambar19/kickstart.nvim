@@ -34,26 +34,26 @@ return {
   },
 
   -- Display Python venv info in your statusline (optional)
-  -- {
-  --   'echasnovski/mini.statusline',
-  --   optional = true, -- Only applies if mini.statusline is used
-  --   config = function()
-  --     -- Override statusline to include Python venv info
-  --     local statusline = require 'mini.statusline'
-  --     local orig_section_mode = statusline.section_mode
-  --
-  --     statusline.section_mode = function()
-  --       local result = orig_section_mode()
-  --       -- If using Python, try to show virtual env info
-  --       if vim.bo.filetype == 'python' then
-  --         local venv = os.getenv 'VIRTUAL_ENV'
-  --         if venv then
-  --           local venv_name = vim.fn.fnamemodify(venv, ':t')
-  --           result = result .. ' [' .. venv_name .. ']'
-  --         end
-  --       end
-  --       return result
-  --     end
-  --   end,
-  -- },
+  {
+    'echasnovski/mini.statusline',
+    optional = true, -- Only applies if mini.statusline is used
+    config = function()
+      -- Override statusline to include Python venv info
+      local statusline = require 'mini.statusline'
+      local orig_section_mode = statusline.section_mode
+
+      statusline.section_mode = function()
+        local result = orig_section_mode()
+        -- If using Python, try to show virtual env info
+        if vim.bo.filetype == 'python' then
+          local venv = os.getenv 'VIRTUAL_ENV'
+          if venv then
+            local venv_name = vim.fn.fnamemodify(venv, ':t')
+            result = result .. ' [' .. venv_name .. ']'
+          end
+        end
+        return result
+      end
+    end,
+  },
 }

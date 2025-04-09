@@ -212,6 +212,7 @@ vim.opt.rtp:prepend(lazypath)
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+  'github/copilot.vim',
   {
     -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
@@ -669,6 +670,7 @@ require('lazy').setup({
           filetypes = { 'yaml.ansible', 'ansible' },
         },
         dockerls = {},
+        ruff = {},
       }
 
       -- ensure the servers and tools above are installed
@@ -698,6 +700,7 @@ require('lazy').setup({
         -- Python tools
         'ruff',
         'isort', -- Python import sorter
+        'debugpy',
         -- Bash
         'shfmt',
       })
@@ -760,7 +763,7 @@ require('lazy').setup({
         json = { 'prettier' },
         jsonc = { 'prettier' },
         terraform = { 'terraform_fmt' }, -- Install terraform cli not only the lsp
-        python = { 'ruff_format', 'ruff_fix', 'isort' },
+        python = { 'ruff_fix', 'ruff_format', 'ruff_organize_imports' },
         bash = { 'shfmt' },
         sh = { 'shfmt' },
         go = { 'goimports', 'gofumpt' },

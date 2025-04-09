@@ -228,7 +228,15 @@ return {
     }
 
     -- Python-specific test debugging
+    local python_path = vim.fn.exepath 'python'
+    -- Fallback to python3 if python not found
+    if python_path == '' then
+      python_path = vim.fn.exepath 'python3'
+    end
+
+    require('dap-python').setup(python_path)
     require('dap-python').test_runner = 'pytest'
+
     vim.keymap.set('n', '<leader>dt', function()
       require('dap-python').test_method()
     end, { desc = '[D]ebug [T]est method' })
