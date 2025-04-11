@@ -187,6 +187,112 @@ vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
   end,
 })
 
+vim.api.nvim_create_autocmd({ 'BufEnter', 'BufRead', 'BufNewFile' }, {
+  pattern = {
+    '*.sh.j2',
+    '*.sh.jinja',
+    '*.sh.jinja2',
+    '*.yml.j2',
+    '*.yml.jinja',
+    '*.yaml.j2',
+    '*.yaml.jinja',
+    '*.conf.j2',
+    '*.conf.jinja',
+    'docker-compose*.yml.j2',
+    'docker-compose*.yaml.j2',
+    'Dockerfile*.j2',
+    '*.j2',
+    '*.jinja',
+    '*.jinja2',
+  },
+  callback = function(ev)
+    local filename = vim.fn.expand '%:t'
+    local base_ext = vim.fn.fnamemodify(filename:gsub('%.j2$', ''):gsub('%.jinja2?$', ''), ':e')
+    local bufnr = ev.buf
+
+    -- Try to determine the base filetype
+    local base_ft = ''
+
+    -- Check for docker-compose files first (special case)
+    if filename:match '^docker%-compose' and (base_ext == 'yml' or base_ext == 'yaml') then
+      base_ft = 'yaml.docker-compose'
+    elseif filename:match '^Dockerfile' then
+      base_ft = 'dockerfile'
+    elseif base_ext == 'sh' then
+      base_ft = 'sh'
+    elseif base_ext == 'yml' or base_ext == 'yaml' then
+      base_ft = 'yaml'
+    elseif base_ext == 'conf' then
+      base_ft = 'conf'
+    end
+
+    -- Set the appropriate filetype
+    if base_ft ~= '' then
+      vim.bo[bufnr].filetype = base_ft .. '.jinja'
+    else
+      vim.bo[bufnr].filetype = 'jinja'
+    end
+
+    -- If treesitter doesn't support jinja, ensure syntax is on
+    if vim.treesitter.language.get_lang 'jinja' == nil then
+      vim.bo[bufnr].syntax = 'on'
+    end
+  end,
+  desc = 'Set correct filetype for template files with compound extensions',
+})
+
+local function set_filetype_from_quicklist()
+  -- Define a list of common filetypes
+  -- You can add or remove filetypes according to your needs
+  local filetypes = {
+    'lua',
+    'python',
+    'javascript',
+    'typescript',
+    'javascriptreact',
+    'typescriptreact',
+    'go',
+    'rust',
+    'yaml',
+    'yaml.ansible',
+    'json',
+    'html',
+    'css',
+    'markdown',
+    'sh',
+    'bash',
+    'terraform',
+    'vim',
+  }
+
+  -- Create a table for vim.ui.select
+  local items = {}
+  for _, ft in ipairs(filetypes) do
+    table.insert(items, { label = ft, value = ft })
+  end
+
+  -- Prompt the user to choose a filetype
+  vim.ui.select(items, {
+    prompt = 'Select filetype:',
+    format_item = function(item)
+      return item.label
+    end,
+  }, function(choice)
+    if choice then
+      vim.bo.filetype = choice.value
+      print('Filetype set to: ' .. choice.value)
+    end
+  end)
+end
+
+-- Create a command to invoke the function
+vim.api.nvim_create_user_command('SetFileType', set_filetype_from_quicklist, {
+  desc = 'Set filetype from a quick list',
+})
+
+-- Create a keymap for quick access (optional)
+vim.keymap.set('n', '<leader>ft', ':SetFileType<CR>', { desc = 'Set [F]ile [T]ype from list' })
+--
 -- [[ Install `lazy.nvim` plugin manager ]]
 --    See `:help lazy.nvim.txt` or https://github.com/folke/lazy.nvim for more info
 local lazypath = vim.fn.stdpath 'data' .. '/lazy/lazy.nvim'
@@ -212,6 +318,7 @@ vim.opt.rtp:prepend(lazypath)
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
+  'HiPhish/jinja.vim',
   {
     -- Useful plugin to show you pending keybinds.
     'folke/which-key.nvim',
@@ -669,6 +776,10 @@ require('lazy').setup({
           filetypes = { 'yaml.ansible', 'ansible' },
         },
         dockerls = {},
+        docker_compose_language_service = {
+          filetypes = { 'docker-compose', 'docker-compose.jinja' },
+        },
+        jinja_lsp = {},
       }
 
       -- ensure the servers and tools above are installed
@@ -984,6 +1095,9 @@ require('lazy').setup({
         'gowork',
         -- Python
         'python',
+        'yaml',
+        'dockerfile',
+        'jinja',
       },
       -- Autoinstall languages that are not installed
       auto_install = true,
