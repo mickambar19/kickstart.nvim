@@ -36,8 +36,8 @@
 | `<leader>wl`     | Move focus to right window       | Need to edit right pane? `<Space>wl` focuses it |
 | `<leader>wj`     | Move focus to lower window       | Want the window below? `<Space>wj` jumps down |
 | `<leader>wk`     | Move focus to upper window       | Code reference above? `<Space>wk` moves up |
-| `<leader>wr`     | Split window right               | Need side-by-side editing? `<Space>wr` splits right |
-| `<leader>wd`     | Split window down                | Want to see two sections? `<Space>wd` splits down |
+| `<leader>wcl`    | Split window right               | Need side-by-side editing? `<Space>wr` splits right |
+| `<leader>wcj`    | Split window down                | Want to see two sections? `<Space>wd` splits down |
 | `<leader>x`      | Close window                     | Done with this split? `<Space>x` closes it |
 | `<leader>X`      | Close all windows                | Finished session? `<Space>X` closes everything |
 | `<C-w>x`         | Close window but keep buffer     | Keep file open but close view? `<Ctrl>w x` does this |
@@ -46,11 +46,11 @@
 
 | Key              | Description                      | Usage Example                                 |
 |------------------|----------------------------------|----------------------------------------------|
-| `<leader>tn`     | New tab                          | Want separate workspace? `<Space>tn` creates new tab |
-| `<leader>tc`     | Close tab                        | Done with this context? `<Space>tc` closes tab |
+| `<leader>tc`     | New tab                          | Want separate workspace? `<Space>tc` creates new tab |
+| `<leader>tx`     | Close tab                        | Done with this context? `<Space>tx` closes tab |
 | `<leader>to`     | Close other tabs                 | Focus only on current tab? `<Space>to` closes others |
-| `<leader>gt`     | Go to next tab                   | Working across tabs? `<Space>gt` cycles forward |
-| `<leader>gT`     | Go to previous tab               | Need previous context? `<Space>gT` moves back |
+| `<leader>tn`     | Go to next tab                   | Working across tabs? `<Space>tn` cycles forward |
+| `<leader>tp`     | Go to previous tab               | Need previous context? `<Space>tp` moves back |
 
 ## Search/Telescope
 

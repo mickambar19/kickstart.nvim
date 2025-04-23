@@ -1,7 +1,7 @@
 vim.g.mapleader = ' '
 vim.g.maplocalleader = ' '
 vim.g.have_nerd_font = true
-vim.opt.number = false
+vim.opt.number = true
 vim.opt.relativenumber = true
 
 -- Enable mouse mode, can be useful for resizing splits for example!
@@ -112,8 +112,8 @@ vim.keymap.set('n', '<leader>wl', '<C-w><C-l>', { desc = 'Move focus to the righ
 vim.keymap.set('n', '<leader>wj', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
 vim.keymap.set('n', '<leader>wk', '<C-w><C-k>', { desc = 'Move focus to the upper window' })
 -- Split window navigation improvements
-vim.keymap.set('n', '<leader>wr', ':vsplit<CR>', { desc = '[W]indow split [R]ight' })
-vim.keymap.set('n', '<leader>wd', ':split<CR>', { desc = '[W]indow split [D]own' })
+vim.keymap.set('n', '<leader>wcl', ':vsplit<CR>', { desc = '[W]indow [C]reate split [l] right' })
+vim.keymap.set('n', '<leader>wcj', ':split<CR>', { desc = '[W]indow [C]reate split [j] down' })
 
 vim.keymap.set('n', '<leader>x', '<cmd>close<CR>', { desc = 'Close window' })
 vim.keymap.set('n', '<leader>X', '<cmd>qa<CR>', { desc = 'Close all windows' })
@@ -148,23 +148,23 @@ vim.keymap.set('n', '<leader>bp', ':bprevious<CR>', { desc = '[B]uffer [P]reviou
 vim.keymap.set('n', '<leader>bd', ':bdelete<CR>', { desc = '[B]uffer [D]elete' })
 
 -- Quick tab navigation
-vim.keymap.set('n', '<leader>tn', ':tabnew<CR>', { desc = '[T]ab [N]ew' })
-vim.keymap.set('n', '<leader>tc', ':tabclose<CR>', { desc = '[T]ab [C]lose' })
+vim.keymap.set('n', '<leader>tc', ':tabnew<CR>', { desc = '[T]ab [C]reate' })
+vim.keymap.set('n', '<leader>tx', ':tabclose<CR>', { desc = '[T]ab [x] close' })
 vim.keymap.set('n', '<leader>to', ':tabonly<CR>', { desc = '[T]ab [O]nly - close others' })
-vim.keymap.set('n', '<leader>gt', function()
+vim.keymap.set('n', '<leader>tn', function()
   if vim.fn.tabpagenr '$' == vim.fn.tabpagenr() then
     vim.cmd 'tabfirst'
   else
     vim.cmd 'tabnext'
   end
-end, { desc = '[g]o to next [t]ab (wraps to first)' })
-vim.keymap.set('n', '<leader>gT', function()
+end, { desc = '[T]ab [N]ext (wraps to first)' })
+vim.keymap.set('n', '<leader>tp', function()
   if vim.fn.tabpagenr() == 0 then
     vim.cmd 'tablast'
   else
     vim.cmd 'tabp'
   end
-end, { desc = '[g]o to prev [T]ab (wraps to last)' })
+end, { desc = '[T]ab [P]revious (wraps to last)' })
 -- [[ Basic Autocommands ]]
 --  See `:help lua-guide-autocommands`
 
@@ -189,6 +189,9 @@ vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
 
 vim.api.nvim_create_autocmd({ 'BufEnter', 'BufRead', 'BufNewFile' }, {
   pattern = {
+    '*.html.j2',
+    '*.html.jinja',
+    '*.html.jinja2',
     '*.sh.j2',
     '*.sh.jinja',
     '*.sh.jinja2',
@@ -222,6 +225,8 @@ vim.api.nvim_create_autocmd({ 'BufEnter', 'BufRead', 'BufNewFile' }, {
       base_ft = 'sh'
     elseif base_ext == 'yml' or base_ext == 'yaml' then
       base_ft = 'yaml'
+    elseif base_ext == 'html' then
+      base_ft = 'html'
     elseif base_ext == 'conf' then
       base_ft = 'conf'
     end
@@ -317,6 +322,8 @@ vim.opt.rtp:prepend(lazypath)
 --
 -- NOTE: Here is where you install your plugins.
 require('lazy').setup({
+  -- 'ThePrimeagen/vim-be-good',
+  'jesseduffield/lazygit',
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
   'github/copilot.vim',
   'HiPhish/jinja.vim',
@@ -523,6 +530,7 @@ require('lazy').setup({
 
       -- Allows extra capabilities provided by nvim-cmp
       'hrsh7th/cmp-nvim-lsp',
+      'b0o/SchemaStore.nvim',
     },
     config = function()
       vim.api.nvim_create_autocmd('LspAttach', {
@@ -782,6 +790,17 @@ require('lazy').setup({
           filetypes = { 'docker-compose', 'docker-compose.jinja' },
         },
         jinja_lsp = {},
+        html = {},
+        jsonls = {
+          settings = {
+            json = {
+              -- Use schemastore to get schemas for common JSON files
+              schemas = require('schemastore').json.schemas(),
+              -- Configure json validation and schema mapping
+              validate = { enable = true },
+            },
+          },
+        },
       }
 
       -- ensure the servers and tools above are installed
@@ -867,6 +886,7 @@ require('lazy').setup({
       formatters_by_ft = {
         lua = { 'stylua' },
         -- You can use 'stop_after_first' to run the first available formatter from the list
+        html = { 'prettierd', 'prettier', stop_after_first = true },
         javascript = { 'prettierd', 'prettier', stop_after_first = true },
         typescript = { 'prettierd', 'prettier', stop_after_first = true },
         javascriptreact = { 'prettierd', 'prettier', stop_after_first = true },
