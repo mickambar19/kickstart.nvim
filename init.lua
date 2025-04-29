@@ -878,7 +878,7 @@ require('lazy').setup({
           return nil
         else
           return {
-            timeout_ms = 500,
+            timeout_ms = 2500,
             lsp_format = 'fallback',
           }
         end
@@ -890,7 +890,7 @@ require('lazy').setup({
         javascript = { 'prettierd', 'prettier', stop_after_first = true },
         typescript = { 'prettierd', 'prettier', stop_after_first = true },
         javascriptreact = { 'prettierd', 'prettier', stop_after_first = true },
-        typescriptreact = { 'prettierd', 'prettier', stop_after_first = true },
+        typescriptreact = { 'prettier', stop_after_first = true },
         json = { 'prettier' },
         jsonc = { 'prettier' },
         terraform = { 'terraform_fmt' }, -- Install terraform cli not only the lsp
@@ -906,6 +906,41 @@ require('lazy').setup({
         --   args = { '--fix', '--format', 'parseable', '-' },
         --   stdin = true,
         -- },
+        prettier = {
+          cwd = function(_, ctx)
+            local byPrettierConfigFile = require('conform.util').root_file {
+              '.prettierrc',
+              '.prettierrc.json',
+              '.prettierrc.yml',
+              '.prettierrc.yaml',
+              '.prettierrc.json5',
+              '.prettierrc.js',
+              '.prettierrc.cjs',
+              '.prettierrc.mjs',
+              '.prettierrc.toml',
+              'prettier.config.js',
+              'prettier.config.cjs',
+              'prettier.config.mjs',
+            }(_, ctx)
+
+            if byPrettierConfigFile then
+              print('byPrettierConfigFile: ' .. byPrettierConfigFile)
+              return byPrettierConfigFile
+            end
+
+            -- TODO: recursively search for package.json + "prettier" condition until there is a proper package.json found
+          end,
+          command = function()
+            local project_root = vim.fn.systemlist('git rev-parse --show-toplevel')[1]
+            if vim.v.shell_error == 0 and project_root ~= '' then
+              local prettier_path = project_root .. '/node_modules/.bin/prettier'
+              if vim.fn.filereadable(prettier_path) == 1 then
+                return prettier_path
+              end
+            end
+            return 'prettier' -- fallback to global
+          end,
+        },
         shfmt = {
           prepend_args = { '-i', '2', '-ci' }, -- 2-space indent, indent switch cases
         },
