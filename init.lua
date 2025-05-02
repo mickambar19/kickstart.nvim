@@ -924,7 +924,6 @@ require('lazy').setup({
             }(_, ctx)
 
             if byPrettierConfigFile then
-              print('byPrettierConfigFile: ' .. byPrettierConfigFile)
               return byPrettierConfigFile
             end
 

@@ -4,9 +4,7 @@ return {
     dependencies = { 'nvim-lua/plenary.nvim', 'neovim/nvim-lspconfig' },
     opts = {
       settings = {
-        root_dir = function()
-          return vim.fn.getcwd()
-        end,
+        root_dir = require('lspconfig.util').root_pattern('tsconfig.json', 'jsconfig.json', 'package.json'),
         -- Enable auto imports
         complete_function_calls = true,
         include_completions_with_insert_text = true,
@@ -16,6 +14,9 @@ return {
           includeAutomaticOptionalChainCompletions = true,
           includeCompletionsWithInsertText = true,
           importModuleSpecifierPreference = 'relative',
+          -- importModuleSpecifierPreference = 'non-relative',
+          -- Use aliases from tsconfig when importing
+          importModuleSpecifierEnding = 'minimal',
           quotePreference = 'auto',
         },
         tsserver_format_options = {
@@ -25,10 +26,6 @@ return {
         code_lens = 'all',
         code_lens_references = true,
       },
-      -- handlers = {
-      --   ['textDocument/definition'] = require('typescript-tools.api').handlers.definition,
-      --   ['textDocument/references'] = require('typescript-tools.api').handlers.references,
-      -- },
     },
     config = function(_, opts)
       require('typescript-tools').setup(opts)
