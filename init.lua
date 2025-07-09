@@ -90,11 +90,11 @@ vim.keymap.set('n', '<leader>tl', function()
   local number = vim.o.number
   local relativenumber = vim.o.relativenumber
 
--- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
--- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
--- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
--- vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
--- vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
+  -- NOTE: Some terminals have colliding keymaps or are not able to send distinct keycodes
+  -- vim.keymap.set("n", "<C-S-h>", "<C-w>H", { desc = "Move window to the left" })
+  -- vim.keymap.set("n", "<C-S-l>", "<C-w>L", { desc = "Move window to the right" })
+  -- vim.keymap.set("n", "<C-S-j>", "<C-w>J", { desc = "Move window to the lower" })
+  -- vim.keymap.set("n", "<C-S-k>", "<C-w>K", { desc = "Move window to the upper" })
 
   if number and relativenumber then
     -- Show only numbers
@@ -144,8 +144,8 @@ vim.keymap.set('n', 'J', 'mzJ`z', { desc = 'Join lines and keep cursor position'
 
 vim.keymap.set('n', '<leader>fw', ':w<CR>', { desc = '[F]file [W]rite (save)' })
 vim.keymap.set('n', '<leader>fW', function()
-  local old_eventignore = vim.opt.eventignore:get()
-  vim.opt.eventignore:append 'BufWritePre'
+  local old_eventignore = vim.opt.eventignore
+  vim.opt.eventignore:extend { 'BufWritePre' }
   -- Save the file
   vim.cmd 'write'
   -- Restore previous eventignore setting
@@ -337,7 +337,7 @@ require('lazy').setup({
   -- 'ThePrimeagen/vim-be-good',
   'jesseduffield/lazygit',
   'tpope/vim-sleuth', -- Detect tabstop and shiftwidth automatically
-  'github/copilot.vim',
+  -- 'github/copilot.vim',
   'HiPhish/jinja.vim',
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
   'NMAC427/guess-indent.nvim', -- Detect tabstop and shiftwidth automatically
@@ -716,34 +716,75 @@ require('lazy').setup({
           end
         end,
       })
-      -- Diagnostic Config
-      -- See :help vim.diagnostic.Opts
+      -- Replace your existing vim.diagnostic.config in init.lua with this:
+
       vim.diagnostic.config {
         severity_sort = true,
-        float = { border = 'rounded', source = 'if_many' },
-        underline = { severity = vim.diagnostic.severity.ERROR },
-        signs = vim.g.have_nerd_font and {
-          text = {
-            [vim.diagnostic.severity.ERROR] = '󰅚 ',
-            [vim.diagnostic.severity.WARN] = '󰀪 ',
-            [vim.diagnostic.severity.INFO] = '󰋽 ',
-            [vim.diagnostic.severity.HINT] = '󰌶 ',
-          },
-        } or {},
-        virtual_text = {
+
+        -- Enhanced float configuration for quick viewing
+        float = {
+          border = 'rounded',
           source = 'if_many',
-          spacing = 2,
-          format = function(diagnostic)
-            local diagnostic_message = {
-              [vim.diagnostic.severity.ERROR] = diagnostic.message,
-              [vim.diagnostic.severity.WARN] = diagnostic.message,
-              [vim.diagnostic.severity.INFO] = diagnostic.message,
-              [vim.diagnostic.severity.HINT] = diagnostic.message,
+          header = '',
+          prefix = '',
+          max_width = 80,
+          max_height = 20,
+          focusable = false,
+          close_events = { 'BufLeave', 'CursorMoved', 'InsertEnter', 'FocusLost' },
+        },
+
+        underline = { severity = vim.diagnostic.severity.ERROR },
+
+        -- Smaller, minimal signs
+        signs = vim.g.have_nerd_font
+            and {
+              text = {
+                [vim.diagnostic.severity.ERROR] = '●', -- Small filled circle
+                [vim.diagnostic.severity.WARN] = '●', -- Small filled circle
+                [vim.diagnostic.severity.INFO] = '●', -- Small filled circle
+                [vim.diagnostic.severity.HINT] = '●', -- Small filled circle
+              },
             }
-            return diagnostic_message[diagnostic.severity]
+          or {
+            text = {
+              [vim.diagnostic.severity.ERROR] = 'E',
+              [vim.diagnostic.severity.WARN] = 'W',
+              [vim.diagnostic.severity.INFO] = 'I',
+              [vim.diagnostic.severity.HINT] = 'H',
+            },
+          },
+
+        -- Subtle virtual text with colors
+        virtual_text = {
+          spacing = 2,
+          prefix = '',
+          format = function(diagnostic)
+            -- Show first 25 characters in a subtle way
+            local message = diagnostic.message:gsub('\n', ' ') -- Remove newlines
+            local truncated = string.sub(message, 1, 25)
+            if #message > 25 then
+              truncated = truncated .. '…'
+            end
+            return truncated
           end,
         },
       }
+
+      -- Add convenient keymaps for diagnostic float
+      vim.keymap.set('n', '<leader>dd', vim.diagnostic.open_float, { desc = '[D]iagnostic [D]isplay float' })
+      vim.keymap.set('n', '<leader>dl', vim.diagnostic.setloclist, { desc = '[D]iagnostic [L]ist' })
+
+      -- Subtle, colored diagnostic highlights (not yelling)
+      vim.api.nvim_set_hl(0, 'DiagnosticSignError', { fg = '#e06c75' })
+      vim.api.nvim_set_hl(0, 'DiagnosticSignWarn', { fg = '#e5c07b' })
+      vim.api.nvim_set_hl(0, 'DiagnosticSignInfo', { fg = '#61afef' })
+      vim.api.nvim_set_hl(0, 'DiagnosticSignHint', { fg = '#98c379' })
+
+      -- Subtle virtual text colors (more muted than signs)
+      vim.api.nvim_set_hl(0, 'DiagnosticVirtualTextError', { fg = '#e06c75', italic = true, blend = 20 })
+      vim.api.nvim_set_hl(0, 'DiagnosticVirtualTextWarn', { fg = '#e5c07b', italic = true, blend = 20 })
+      vim.api.nvim_set_hl(0, 'DiagnosticVirtualTextInfo', { fg = '#61afef', italic = true, blend = 20 })
+      vim.api.nvim_set_hl(0, 'DiagnosticVirtualTextHint', { fg = '#98c379', italic = true, blend = 20 })
 
       -- LSP servers and clients are able to communicate to each other what features they support.
       --  By default, Neovim doesn't support everything that is in the LSP specification.
@@ -954,9 +995,9 @@ require('lazy').setup({
         lua = { 'stylua' },
         -- You can use 'stop_after_first' to run the first available formatter from the list
         html = { 'prettierd', 'prettier', stop_after_first = true },
-        javascript = { 'prettierd', 'prettier', stop_after_first = true },
-        typescript = { 'prettierd', 'prettier', stop_after_first = true },
-        javascriptreact = { 'prettierd', 'prettier', stop_after_first = true },
+        javascript = { 'prettier', stop_after_first = true },
+        typescript = { 'prettier', stop_after_first = true },
+        javascriptreact = { 'prettier', stop_after_first = true },
         typescriptreact = { 'prettier', stop_after_first = true },
         json = { 'prettier' },
         jsonc = { 'prettier' },
@@ -974,7 +1015,9 @@ require('lazy').setup({
         --   stdin = true,
         -- },
         prettier = {
-          cwd = function(_, ctx)
+          -- Only run prettier when config file exists
+          condition = function(_, ctx)
+            -- Check for dedicated prettier config files
             local byPrettierConfigFile = require('conform.util').root_file {
               '.prettierrc',
               '.prettierrc.json',
@@ -991,12 +1034,65 @@ require('lazy').setup({
             }(_, ctx)
 
             if byPrettierConfigFile then
-              return byPrettierConfigFile
+              return true
             end
 
-            -- TODO: recursively search for package.json + "prettier" condition until there is a proper package.json found
+            -- Check for prettier config in package.json (first level only)
+            local package_json_root = require('conform.util').root_file { 'package.json' }(_, ctx)
+            if package_json_root then
+              local package_json_path = package_json_root .. '/package.json'
+              local ok, content = pcall(vim.fn.readfile, package_json_path)
+              if ok then
+                local json_str = table.concat(content, '\n')
+                -- Parse JSON and check for top-level prettier key
+                local json_ok, json_data = pcall(vim.fn.json_decode, json_str)
+                if json_ok and json_data and json_data.prettier then
+                  return true
+                end
+              end
+            end
+
+            return false
           end,
-          command = function()
+          -- cwd = function(_, ctx)
+          --   -- Check for dedicated prettier config files
+          --   local byPrettierConfigFile = require('conform.util').root_file {
+          --     '.prettierrc',
+          --     '.prettierrc.json',
+          --     '.prettierrc.yml',
+          --     '.prettierrc.yaml',
+          --     '.prettierrc.json5',
+          --     '.prettierrc.js',
+          --     '.prettierrc.cjs',
+          --     '.prettierrc.mjs',
+          --     '.prettierrc.toml',
+          --     'prettier.config.js',
+          --     'prettier.config.cjs',
+          --     'prettier.config.mjs',
+          --   }(_, ctx)
+          --
+          --   if byPrettierConfigFile then
+          --     return true
+          --   end
+          --
+          --   -- Check for prettier config in package.json
+          --   local package_json_root = require('conform.util').root_file { 'package.json' }(_, ctx)
+          --   if package_json_root then
+          --     local package_json_path = package_json_root .. '/package.json'
+          --     local ok, content = pcall(vim.fn.readfile, package_json_path)
+          --     if ok then
+          --       local json_str = table.concat(content, '\n')
+          --       -- Check for prettier key in package.json (config)
+          --       -- or prettier in dependencies/devDependencies
+          --       if json_str:find '"prettier"' then
+          --         return true
+          --       end
+          --     end
+          --   end
+          --
+          --   return false
+          -- end,
+          command = function(_, ctx)
             local project_root = vim.fn.systemlist('git rev-parse --show-toplevel')[1]
             if vim.v.shell_error == 0 and project_root ~= '' then
               local prettier_path = project_root .. '/node_modules/.bin/prettier'

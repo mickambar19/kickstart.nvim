@@ -87,6 +87,35 @@ return {
 
       -- Browse (GitHub)
       { '<leader>gbr', '<cmd>GBrowse<cr>', desc = '[G]it [Br]owse' },
+      -- Custom git utilities
+      {
+        '<leader>gpr',
+        function()
+          require('custom.git').open_pr_from_blame()
+        end,
+        desc = '[G]it open [PR] from blame',
+      },
+      {
+        '<leader>gpn',
+        function()
+          require('custom.git').open_pr_by_number()
+        end,
+        desc = '[G]it open [PR] by [N]umber',
+      },
+      {
+        '<leader>gcp',
+        function()
+          require('custom.git').copy_github_url()
+        end,
+        desc = '[G]it [C]opy GitHub [P]ermalink',
+      },
+      {
+        '<leader>gdb',
+        function()
+          require('custom.git').debug_blame()
+        end,
+        desc = '[G]it [D]e[b]ug blame',
+      },
     },
   },
 }
