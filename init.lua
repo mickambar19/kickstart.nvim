@@ -13,6 +13,7 @@ vim.o.showmode = false
 
 -- Sync clipboard between OS and Neovim.
 --  Schedule the setting after `UiEnter` because it can increase startup-time.
+--
 --  Remove this option if you want your OS clipboard to remain independent.
 --  See `:help 'clipboard'`
 vim.schedule(function()
@@ -110,6 +111,15 @@ vim.keymap.set('n', '<leader>tl', function()
     vim.opt.relativenumber = true
   end
 end, { desc = '[T]oggle [L]ine numbers' })
+
+--- Copilot related ---
+vim.keymap.set('n', '<leader>ta', function()
+  vim.g.copilot_enabled = not vim.g.copilot_enabled
+  local status = vim.g.copilot_enabled and 'enabled' or 'disabled'
+  vim.notify('Copilot ' .. status, vim.log.levels.INFO)
+end, { desc = '[T]oggle [A]I Copilot' })
+
+-- Copilot related end
 
 vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
 vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
@@ -960,160 +970,6 @@ require('lazy').setup({
       }
     end,
   },
-
-  { -- Autoformat
-    'stevearc/conform.nvim',
-    event = { 'BufWritePre' },
-    cmd = { 'ConformInfo' },
-    keys = {
-      {
-        '<leader>ff',
-        function()
-          require('conform').format { async = true, lsp_format = 'fallback' }
-        end,
-        mode = '',
-        desc = '[F]ile [F]ormat',
-      },
-    },
-    opts = {
-      notify_on_error = false,
-      format_on_save = function(bufnr)
-        -- Disable "format_on_save lsp_fallback" for languages that don't
-        -- have a well standardized coding style. You can add additional
-        -- languages here or re-enable it for the disabled ones.
-        local disable_filetypes = { c = true, cpp = true }
-        if disable_filetypes[vim.bo[bufnr].filetype] then
-          return nil
-        else
-          return {
-            timeout_ms = 2500,
-            lsp_format = 'fallback',
-          }
-        end
-      end,
-      formatters_by_ft = {
-        lua = { 'stylua' },
-        -- You can use 'stop_after_first' to run the first available formatter from the list
-        html = { 'prettierd', 'prettier', stop_after_first = true },
-        javascript = { 'prettier', stop_after_first = true },
-        typescript = { 'prettier', stop_after_first = true },
-        javascriptreact = { 'prettier', stop_after_first = true },
-        typescriptreact = { 'prettier', stop_after_first = true },
-        json = { 'prettier' },
-        jsonc = { 'prettier' },
-        terraform = { 'terraform_fmt' }, -- Install terraform cli not only the lsp
-        python = { 'ruff_fix', 'ruff_format', 'ruff_organize_imports' },
-        bash = { 'shfmt' },
-        sh = { 'shfmt' },
-        go = { 'goimports', 'gofumpt' },
-        -- ansible = { 'ansiblelint' },
-      },
-      formatters = {
-        -- ansiblelint = {
-        --   command = 'ansible-lint',
-        --   args = { '--fix', '--format', 'parseable', '-' },
-        --   stdin = true,
-        -- },
-        prettier = {
-          -- Only run prettier when config file exists
-          condition = function(_, ctx)
-            -- Check for dedicated prettier config files
-            local byPrettierConfigFile = require('conform.util').root_file {
-              '.prettierrc',
-              '.prettierrc.json',
-              '.prettierrc.yml',
-              '.prettierrc.yaml',
-              '.prettierrc.json5',
-              '.prettierrc.js',
-              '.prettierrc.cjs',
-              '.prettierrc.mjs',
-              '.prettierrc.toml',
-              'prettier.config.js',
-              'prettier.config.cjs',
-              'prettier.config.mjs',
-            }(_, ctx)
-
-            if byPrettierConfigFile then
-              return true
-            end
-
-            -- Check for prettier config in package.json (first level only)
-            local package_json_root = require('conform.util').root_file { 'package.json' }(_, ctx)
-            if package_json_root then
-              local package_json_path = package_json_root .. '/package.json'
-              local ok, content = pcall(vim.fn.readfile, package_json_path)
-              if ok then
-                local json_str = table.concat(content, '\n')
-                -- Parse JSON and check for top-level prettier key
-                local json_ok, json_data = pcall(vim.fn.json_decode, json_str)
-                if json_ok and json_data and json_data.prettier then
-                  return true
-                end
-              end
-            end
-
-            return false
-          end,
-          -- cwd = function(_, ctx)
-          --   -- Check for dedicated prettier config files
-          --   local byPrettierConfigFile = require('conform.util').root_file {
-          --     '.prettierrc',
-          --     '.prettierrc.json',
-          --     '.prettierrc.yml',
-          --     '.prettierrc.yaml',
-          --     '.prettierrc.json5',
-          --     '.prettierrc.js',
-          --     '.prettierrc.cjs',
-          --     '.prettierrc.mjs',
-          --     '.prettierrc.toml',
-          --     'prettier.config.js',
-          --     'prettier.config.cjs',
-          --     'prettier.config.mjs',
-          --   }(_, ctx)
-          --
-          --   if byPrettierConfigFile then
-          --     return true
-          --   end
-          --
-          --   -- Check for prettier config in package.json
-          --   local package_json_root = require('conform.util').root_file { 'package.json' }(_, ctx)
-          --   if package_json_root then
-          --     local package_json_path = package_json_root .. '/package.json'
-          --     local ok, content = pcall(vim.fn.readfile, package_json_path)
-          --     if ok then
-          --       local json_str = table.concat(content, '\n')
-          --       -- Check for prettier key in package.json (config)
-          --       -- or prettier in dependencies/devDependencies
-          --       if json_str:find '"prettier"' then
-          --         return true
-          --       end
-          --     end
-          --   end
-          --
-          --   return false
-          -- end,
-          command = function(_, ctx)
-            local project_root = vim.fn.systemlist('git rev-parse --show-toplevel')[1]
-            if vim.v.shell_error == 0 and project_root ~= '' then
-              local prettier_path = project_root .. '/node_modules/.bin/prettier'
-              if vim.fn.filereadable(prettier_path) == 1 then
-                return prettier_path
-              end
-            end
-            return 'prettier' -- fallback to global
-          end,
-        },
-        shfmt = {
-          prepend_args = { '-i', '2', '-ci' }, -- 2-space indent, indent switch cases
-        },
-        jq = {
-          -- Optional: Configure jq arguments
-          args = { '--indent', '2' },
-        },
-      },
-    },
-  },
-
   { -- Autocompletion
     'saghen/blink.cmp',
     event = 'VimEnter',
