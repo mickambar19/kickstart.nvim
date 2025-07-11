@@ -29,7 +29,7 @@ local state_file = vim.fn.stdpath 'data' .. '/ai_model_state.json'
 local default_state = {
   current_model = 'gpt-4.1',
   usage = {
-    ['claude-3-sonnet'] = {
+    ['claude-sonnet-4'] = {
       count = 0,
       last_reset = os.date '%Y-%m-01',
     },
@@ -40,9 +40,11 @@ local default_state = {
 function M.load_state()
   if vim.fn.filereadable(state_file) == 1 then
     local content = vim.fn.readfile(state_file)
-    local ok, state = pcall(vim.fn.json_decode, table.concat(content, '\n'))
-    if ok then
-      return state
+    if #content > 0 then
+      local ok, state = pcall(vim.fn.json_decode, table.concat(content, '\n'))
+      if ok and type(state) == 'table' then
+        return state
+      end
     end
   end
   return vim.deepcopy(default_state)
@@ -50,14 +52,18 @@ end
 
 -- Save state to file
 function M.save_state(state)
-  local content = vim.fn.json_encode(state)
-  vim.fn.writefile({ content }, state_file)
+  local ok, content = pcall(vim.fn.json_encode, state)
+  if ok then
+    vim.fn.writefile({ content }, state_file)
+  else
+    vim.notify('Failed to save AI model state', vim.log.levels.ERROR)
+  end
 end
 
 -- Get current model
 function M.get_current_model()
   local state = M.load_state()
-  return state.current_model
+  return state.current_model or 'gpt-4.1'
 end
 
 -- Set current model
@@ -82,7 +88,10 @@ function M.set_current_model(model_name)
   M.save_state(state)
 
   -- Update CopilotChat model
-  require('CopilotChat').setup { model = model_name }
+  local ok, copilot_chat = pcall(require, 'CopilotChat')
+  if ok then
+    copilot_chat.setup { model = model_name }
+  end
 
   return true
 end
@@ -197,7 +206,7 @@ function M.suggest_model(task_type)
   local suggestions = {
     simple = 'gpt-3.5-turbo',
     daily = 'gpt-4.1',
-    complex = 'claude-3-sonnet',
+    complex = 'claude-sonnet-4',
   }
 
   local model = suggestions[task_type] or 'gpt-4.1'
@@ -205,7 +214,7 @@ function M.suggest_model(task_type)
   -- Check if suggested model has capacity
   if task_type == 'complex' then
     local state = M.load_state()
-    local usage_data = state.usage['claude-3-sonnet'] or { count = 0 }
+    local usage_data = state.usage['claude-sonnet-4'] or { count = 0 }
     if usage_data.count >= 300 then
       model = 'gpt-4.1'
       vim.notify('Claude limit reached, using GPT-4.1 instead', vim.log.levels.INFO)

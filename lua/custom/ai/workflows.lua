@@ -299,7 +299,9 @@ function M.contextual_help()
 
   if #diagnostics > 0 then
     -- Focus on the diagnostic
-    core.ask(string.format('Explain this error and how to fix it:\n%s', diagnostics[1].message), { selection = require('CopilotChat.select').diagnostics })
+    core.ask(string.format('Explain this error and how to fix it:\n%s', diagnostics[1].message), {
+      selection = require('CopilotChat.select').diagnostics,
+    })
   elseif context.in_function then
     -- Explain the function
     core.ask 'Explain what this function does and how to use it'
@@ -371,7 +373,9 @@ function M.explain_error()
     return
   end
 
-  core.ask(string.format('Explain this error and provide a fix:\n%s', diagnostics[1].message), { selection = require('CopilotChat.select').line })
+  core.ask(string.format('Explain this error and provide a fix:\n%s', diagnostics[1].message), {
+    selection = require('CopilotChat.select').line,
+  })
 end
 
 return M

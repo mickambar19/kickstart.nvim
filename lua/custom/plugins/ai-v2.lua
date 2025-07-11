@@ -66,12 +66,8 @@ return {
     },
     build = 'make tiktoken',
     opts = function()
-      -- Load AI modules
-      local ai_core = require 'custom.ai.core'
-      local ai_models = require 'custom.ai.models'
-
       return {
-        model = ai_models.get_current_model(),
+        model = 'gpt-4.1',
         window = {
           layout = 'vertical',
           width = 0.4,
@@ -95,40 +91,85 @@ return {
     config = function(_, opts)
       require('CopilotChat').setup(opts)
 
-      -- Load all AI modules
-      local ai_core = require 'custom.ai.core'
-      local ai_keymaps = require 'custom.ai.keymaps'
-      local ai_commands = require 'custom.ai.commands'
+      -- Setup AI modules with error handling
+      local function setup_ai_modules()
+        local ok_keymaps, keymaps_err = pcall(require, 'custom.ai.keymaps')
+        local ok_commands, commands_err = pcall(require, 'custom.ai.commands')
+        local ok_models, models_err = pcall(require, 'custom.ai.models')
 
-      -- Setup keymaps and commands
-      ai_keymaps.setup()
-      ai_commands.setup()
+        if not ok_keymaps then
+          vim.notify('AI keymaps failed to load: ' .. tostring(keymaps_err), vim.log.levels.ERROR)
+          return
+        end
+
+        if not ok_commands then
+          vim.notify('AI commands failed to load: ' .. tostring(commands_err), vim.log.levels.ERROR)
+          return
+        end
+
+        if not ok_models then
+          vim.notify('AI models failed to load: ' .. tostring(models_err), vim.log.levels.ERROR)
+          return
+        end
+
+        -- Setup modules
+        local ok_setup_keymaps = pcall(require('custom.ai.keymaps').setup)
+        if not ok_setup_keymaps then
+          vim.notify('Failed to setup AI keymaps', vim.log.levels.ERROR)
+        end
+
+        local ok_setup_commands = pcall(require('custom.ai.commands').setup)
+        if not ok_setup_commands then
+          vim.notify('Failed to setup AI commands', vim.log.levels.ERROR)
+        end
+
+        vim.notify('AI modules loaded successfully', vim.log.levels.INFO)
+      end
+
+      -- Delay setup to ensure all dependencies are loaded
+      vim.defer_fn(setup_ai_modules, 1000)
 
       -- Setup autocmds
       vim.api.nvim_create_autocmd('User', {
         pattern = 'CopilotChatOpen',
         callback = function()
           vim.defer_fn(function()
-            local models = require 'custom.ai.models'
-            local current = models.get_current_model()
-            local usage = models.get_usage_info()
+            local ok_models, models = pcall(require, 'custom.ai.models')
+            if ok_models then
+              local current = models.get_current_model()
+              local usage = models.get_usage_info()
 
-            vim.notify(
-              string.format(
-                [[
+              vim.notify(
+                string.format(
+                  [[
 AI Assistant Ready (%s)
 %s
 • <C-y> = Apply changes
 • <leader>am = Switch model
 • <leader>a = Quick actions]],
-                current,
-                usage
-              ),
-              vim.log.levels.INFO
-            )
-          end, 1000)
+                  current,
+                  usage
+                ),
+                vim.log.levels.INFO
+              )
+            end
+          end, 100)
         end,
       })
+
+      -- Basic fallback keymaps in case modules fail
+      vim.keymap.set('n', '<leader>aa', '<cmd>CopilotChatToggle<CR>', { desc = '[A]I Toggle Chat' })
+      vim.keymap.set('n', '<leader>ar', '<cmd>CopilotChatReset<CR>', { desc = '[A]I Reset Chat' })
+
+      -- Emergency fix keymap
+      vim.keymap.set({ 'n', 'v' }, '<F2>', function()
+        require('CopilotChat').ask 'Fix the issues in this code. Be concise and focus on the actual problem.'
+      end, { desc = 'AI Quick Fix' })
+
+      -- Emergency help keymap
+      vim.keymap.set('n', '<F1>', function()
+        require('CopilotChat').ask 'Explain this code clearly and concisely. Focus on what it does and why.'
+      end, { desc = 'AI Quick Help' })
     end,
     cmd = {
       'CopilotChat',
