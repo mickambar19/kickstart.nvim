@@ -5,7 +5,7 @@ return {
     config = function()
       local lint = require 'lint'
       lint.linters_by_ft = {
-        go = { 'golangci-lint' },
+        go = { 'golangcilint' },
       }
 
       -- Create autocommand which carries out the actual linting
