@@ -1212,12 +1212,13 @@ require('lazy').setup({
   },
 })
 
+-- Updated functions for copilot.lua compatibility
 local function copilot_suggestion_visible()
-  local ok, suggestion = pcall(require, 'copilot.suggestion')
+  local ok, copilot = pcall(require, 'copilot.suggestion')
   if not ok then
     return false
   end
-  return suggestion.is_visible()
+  return copilot.is_visible()
 end
 
 -- Enhanced function to check snippet state
@@ -1226,15 +1227,46 @@ local function can_jump_snippet(direction)
   if not ok then
     return false
   end
-
   return luasnip.jumpable(direction or 1)
 end
 
--- Smart Tab - Copilot first, then snippet
+-- Check if we're in a chat buffer
+local function is_chat_buffer()
+  local buf_ft = vim.bo.filetype
+  local buf_name = vim.api.nvim_buf_get_name(0)
+  return buf_ft == 'copilot-chat' or buf_name:match 'copilot%-chat'
+end
+
+-- Smart Tab - Updated for copilot.lua compatibility
 vim.keymap.set('i', '<Tab>', function()
+  -- Special handling for chat buffers
+  if is_chat_buffer() then
+    -- 1. First priority: Copilot suggestion in chat
+    if copilot_suggestion_visible() then
+      local ok, copilot = pcall(require, 'copilot.suggestion')
+      if ok then
+        copilot.accept()
+        return
+      end
+    end
+
+    -- 2. Check for completion menu in chat
+    if vim.fn.pumvisible() == 1 then
+      return '<C-n>'
+    end
+
+    -- 3. Fallback to regular tab in chat
+    return '<Tab>'
+  end
+
+  -- Regular buffers (non-chat)
   -- 1. First priority: Copilot suggestion
   if copilot_suggestion_visible() then
-    return require('copilot.suggestion').accept()
+    local ok, copilot = pcall(require, 'copilot.suggestion')
+    if ok then
+      copilot.accept()
+      return
+    end
   end
 
   -- 2. Second priority: Snippet jumping
@@ -1247,7 +1279,7 @@ vim.keymap.set('i', '<Tab>', function()
   return '<Tab>'
 end, { expr = true, silent = true, desc = 'Smart Tab: Copilot -> Snippet -> Tab' })
 
--- Manual snippet override (always works for snippets)
+-- Keep your existing snippet controls
 vim.keymap.set('i', '<C-l>', function()
   local luasnip = require 'luasnip'
   if luasnip.jumpable(1) then
@@ -1281,10 +1313,11 @@ end, { expr = true, silent = true, desc = 'Snippet backward' })
 -- Enhanced debug command
 vim.keymap.set('n', '<leader>td', function()
   local luasnip = require 'luasnip'
-  local copilot = require 'copilot.suggestion'
 
   print '=== Debug Info ==='
-  print('Copilot visible:', copilot.is_visible())
+  print('Buffer type:', vim.bo.filetype)
+  print('Is chat buffer:', is_chat_buffer())
+  print('Copilot visible:', copilot_suggestion_visible())
   print('In snippet:', luasnip.in_snippet())
   print('Can jump forward:', luasnip.jumpable(1))
   print('Can jump backward:', luasnip.jumpable(-1))
@@ -1297,5 +1330,14 @@ vim.keymap.set('n', '<leader>td', function()
       print('Active snippet:', snippet.trigger or 'unknown')
     end
   end
+
+  -- Test Copilot
+  local ok, copilot = pcall(require, 'copilot.suggestion')
+  if ok then
+    print('Copilot module loaded:', true)
+  else
+    print('Copilot module error:', copilot)
+  end
+
   print '=================='
 end, { desc = '[T]ab [D]ebug info' })

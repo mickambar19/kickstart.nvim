@@ -27,7 +27,7 @@ return {
           hide_during_completion = true,
           debounce = 75,
           keymap = {
-            accept = '<Tab>', -- Tab to accept full suggestion
+            accept = false, -- Avoid conflicts with the <Tab> behavior
             accept_word = '<M-w>', -- Alt+w to accept word
             accept_line = '<M-l>', -- Alt+l to accept line
             next = '<M-]>', -- Alt+] for next suggestion
@@ -45,6 +45,7 @@ return {
           svn = false,
           cvs = false,
           ['.'] = false,
+          ['copilot-chat'] = true,
         },
         copilot_node_command = 'node',
         server_opts_overrides = {},
@@ -89,7 +90,7 @@ return {
       auto_follow_cursor = true,
       auto_insert_mode = false,
       mappings = {
-        complete = { insert = '<Tab>' },
+        complete = { insert = false },
         close = { normal = 'q', insert = '<Esc>' },
         reset = { normal = '<C-x>' },
         submit_prompt = { normal = '<CR>', insert = '<C-m>' },
