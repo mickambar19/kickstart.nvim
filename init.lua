@@ -1007,43 +1007,32 @@ require('lazy').setup({
     --- @type blink.cmp.Config
     opts = {
       keymap = {
-        -- 'default' (recommended) for mappings similar to built-in completions
-        --   <c-y> to accept ([y]es) the completion.
-        --    This will auto-import if your LSP supports it.
-        --    This will expand snippets if the LSP sent a snippet.
-        -- 'super-tab' for tab to accept
-        -- 'enter' for enter to accept
-        -- 'none' for no mappings
-        --
-        -- For an understanding of why the 'default' preset is recommended,
-        -- you will need to read `:help ins-completion`
-        --
-        -- No, but seriously. Please read `:help ins-completion`, it is really good!
-        --
-        -- All presets have the following mappings:
-        -- <tab>/<s-tab>: move to right/left of your snippet expansion
-        -- <c-space>: Open menu or open docs if already open
-        -- <c-n>/<c-p> or <up>/<down>: Select next/previous item
-        -- <c-e>: Hide menu
-        -- <c-k>: Toggle signature help
-        --
-        -- See :h blink-cmp-config-keymap for defining your own keymap
-        preset = 'default',
+        preset = 'default', -- Use the default preset
 
-        -- For more advanced Luasnip keymaps (e.g. selecting choice nodes, expansion) see:
-        --    https://github.com/L3MON4D3/LuaSnip?tab=readme-ov-file#keymaps
+        -- Disable Tab for blink.cmp (let Copilot handle it)
+        ['<Tab>'] = {},
+
+        -- Keep Shift-Tab for snippet navigation
+        -- (this is already in default preset, but being explicit)
+        ['<S-Tab>'] = { 'snippet_backward', 'fallback' },
       },
 
       appearance = {
-        -- 'mono' (default) for 'Nerd Font Mono' or 'normal' for 'Nerd Font'
-        -- Adjusts spacing to ensure icons are aligned
         nerd_font_variant = 'mono',
       },
 
       completion = {
-        -- By default, you may press `<c-space>` to show the documentation.
-        -- Optionally, set `auto_show = true` to show the documentation after a delay.
         documentation = { auto_show = true, auto_show_delay_ms = 200 },
+        accept = {
+          auto_brackets = {
+            enabled = false, -- Disable to avoid conflicts with autopairs
+          },
+        },
+        menu = {
+          draw = {
+            columns = { { 'label', 'label_description', gap = 1 }, { 'kind_icon', 'kind' } },
+          },
+        },
       },
 
       sources = {
@@ -1053,22 +1042,14 @@ require('lazy').setup({
         },
       },
 
-      snippets = { preset = 'luasnip' },
+      snippets = {
+        preset = 'luasnip',
+      },
 
-      -- Blink.cmp includes an optional, recommended rust fuzzy matcher,
-      -- which automatically downloads a prebuilt binary when enabled.
-      --
-      -- By default, we use the Lua implementation instead, but you may enable
-      -- the rust implementation via `'prefer_rust_with_warning'`
-      --
-      -- See :h blink-cmp-config-fuzzy for more information
       fuzzy = { implementation = 'lua' },
-
-      -- Shows a signature help window while you type arguments for a function
       signature = { enabled = true },
     },
   },
-
   { -- You can easily change to a different colorscheme.
     -- Change the name of the colorscheme plugin below, and then
     -- change the command in the config to whatever the name of that colorscheme is.
@@ -1231,5 +1212,90 @@ require('lazy').setup({
   },
 })
 
--- The line beneath this is called `modeline`. See `:help modeline`
--- vim: ts=2 sts=2 sw=2 et
+local function copilot_suggestion_visible()
+  local ok, suggestion = pcall(require, 'copilot.suggestion')
+  if not ok then
+    return false
+  end
+  return suggestion.is_visible()
+end
+
+-- Enhanced function to check snippet state
+local function can_jump_snippet(direction)
+  local ok, luasnip = pcall(require, 'luasnip')
+  if not ok then
+    return false
+  end
+
+  return luasnip.jumpable(direction or 1)
+end
+
+-- Smart Tab - Copilot first, then snippet
+vim.keymap.set('i', '<Tab>', function()
+  -- 1. First priority: Copilot suggestion
+  if copilot_suggestion_visible() then
+    return require('copilot.suggestion').accept()
+  end
+
+  -- 2. Second priority: Snippet jumping
+  if can_jump_snippet(1) then
+    require('luasnip').jump(1)
+    return
+  end
+
+  -- 3. Fallback: Regular tab
+  return '<Tab>'
+end, { expr = true, silent = true, desc = 'Smart Tab: Copilot -> Snippet -> Tab' })
+
+-- Manual snippet override (always works for snippets)
+vim.keymap.set('i', '<C-l>', function()
+  local luasnip = require 'luasnip'
+  if luasnip.jumpable(1) then
+    luasnip.jump(1)
+    print 'Jumped to next snippet placeholder'
+  else
+    print 'No next snippet placeholder available'
+  end
+end, { desc = 'Force snippet forward' })
+
+vim.keymap.set('i', '<C-h>', function()
+  local luasnip = require 'luasnip'
+  if luasnip.jumpable(-1) then
+    luasnip.jump(-1)
+    print 'Jumped to previous snippet placeholder'
+  else
+    print 'No previous snippet placeholder available'
+  end
+end, { desc = 'Force snippet backward' })
+
+-- Shift-Tab for snippet backward (as backup)
+vim.keymap.set('i', '<S-Tab>', function()
+  local luasnip = require 'luasnip'
+  if luasnip.jumpable(-1) then
+    luasnip.jump(-1)
+    return
+  end
+  return '<S-Tab>'
+end, { expr = true, silent = true, desc = 'Snippet backward' })
+
+-- Enhanced debug command
+vim.keymap.set('n', '<leader>td', function()
+  local luasnip = require 'luasnip'
+  local copilot = require 'copilot.suggestion'
+
+  print '=== Debug Info ==='
+  print('Copilot visible:', copilot.is_visible())
+  print('In snippet:', luasnip.in_snippet())
+  print('Can jump forward:', luasnip.jumpable(1))
+  print('Can jump backward:', luasnip.jumpable(-1))
+  print('Locally jumpable forward:', luasnip.locally_jumpable(1))
+  print('Locally jumpable backward:', luasnip.locally_jumpable(-1))
+
+  if luasnip.in_snippet() then
+    local snippet = luasnip.get_active_snip()
+    if snippet then
+      print('Active snippet:', snippet.trigger or 'unknown')
+    end
+  end
+  print '=================='
+end, { desc = '[T]ab [D]ebug info' })

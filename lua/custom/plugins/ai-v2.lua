@@ -27,12 +27,12 @@ return {
           hide_during_completion = true,
           debounce = 75,
           keymap = {
-            accept = '<M-a>', -- Alt+a to accept full suggestion
+            accept = '<Tab>', -- Tab to accept full suggestion
             accept_word = '<M-w>', -- Alt+w to accept word
             accept_line = '<M-l>', -- Alt+l to accept line
             next = '<M-]>', -- Alt+] for next suggestion
             prev = '<M-[>', -- Alt+[ for previous suggestion
-            dismiss = '<M-d>', -- Alt+d to dismiss suggestion
+            dismiss = '<C-]>', -- Ctrl+] to dismiss suggestion
           },
         },
         filetypes = {
@@ -56,9 +56,10 @@ return {
       -- Toggle Copilot on/off
       keymap('n', '<leader>aof', function()
         require('copilot.suggestion').toggle_auto_trigger()
-        local status = require('copilot.suggestion').is_visible() and 'enabled' or 'disabled'
+        local copilot = require 'copilot.suggestion'
+        local status = copilot.is_visible() and 'enabled' or 'disabled'
         vim.notify('Copilot auto-trigger ' .. status, vim.log.levels.INFO)
-      end, { desc = '[AI] [off]' })
+      end, { desc = '[AI] Toggle [of]f' })
 
       -- Manual trigger for suggestions
       keymap('i', '<M-s>', function()
