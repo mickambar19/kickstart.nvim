@@ -24,14 +24,8 @@ function M.setup()
     return
   end
 
-  -- ============================================================================
-  -- MAIN AI MENU - Primary entry point
-  -- ============================================================================
   keymap({ 'n', 'v' }, '<leader>ai', workflows.smart_menu, { desc = '[A]I Smart Menu' })
 
-  -- ============================================================================
-  -- INSTANT ACTIONS - Single letter suffixes (NO CONFLICTS)
-  -- ============================================================================
   keymap({ 'n', 'v' }, '<leader>af', function()
     core.quick_action 'fix'
   end, { desc = '[A]I [F]ix' })
@@ -60,7 +54,6 @@ function M.setup()
     core.quick_action 'docs'
   end, { desc = '[A]I [D]ocs' })
 
-  -- NEW: Custom ask prompt (single letter, no conflict)
   keymap({ 'n', 'v' }, '<leader>ak', function()
     local prompt = vim.fn.input 'Ask AI: '
     if prompt ~= '' then
@@ -68,24 +61,15 @@ function M.setup()
     end
   end, { desc = '[A]I As[k] custom prompt' })
 
-  -- ============================================================================
-  -- CHAT MANAGEMENT - Simple single letters
-  -- ============================================================================
   keymap('n', '<leader>aa', '<cmd>CopilotChatToggle<CR>', { desc = '[A]I Toggle Ch[a]t' })
   keymap('n', '<leader>ar', '<cmd>CopilotChatReset<CR>', { desc = '[A]I [R]eset Chat' })
 
-  -- ============================================================================
-  -- TESTING - Using 'at' prefix with double letters to avoid conflicts
-  -- ============================================================================
   keymap({ 'n', 'v' }, '<leader>att', function()
     core.quick_action 'tests'
   end, { desc = '[A]I [T]ests [T]est' })
 
   keymap('n', '<leader>atf', workflows.test_current_function, { desc = '[A]I [T]est [F]unction' })
 
-  -- ============================================================================
-  -- CREATION - Using 'ac' prefix with double letters to avoid conflicts
-  -- ============================================================================
   keymap('n', '<leader>acr', workflows.create_component, { desc = '[A]I [C]reate [R]eact component' })
   keymap('n', '<leader>ach', workflows.create_hook, { desc = '[A]I [C]reate [H]ook' })
   keymap('n', '<leader>acp', workflows.create_next_page, { desc = '[A]I [C]reate [P]age (Next.js)' })
@@ -97,9 +81,6 @@ function M.setup()
     core.ask 'Extract and create proper TypeScript interfaces for this code. Make them as specific as possible.'
   end, { desc = '[A]I [C]reate [I]nterface' })
 
-  -- ============================================================================
-  -- GIT - Using 'ag' prefix with double letters to avoid conflicts
-  -- ============================================================================
   keymap('n', '<leader>agg', workflows.smart_commit, { desc = '[A]I [G]it [G]enerate commit' })
 
   keymap('n', '<leader>agr', function()
@@ -114,7 +95,6 @@ function M.setup()
     end
   end, { desc = '[A]I [G]it [R]eview diff' })
 
-  -- NEW: Deep git diff analysis
   keymap('n', '<leader>agd', function()
     local diff = vim.fn.system 'git diff'
     if diff == '' then
@@ -127,9 +107,6 @@ function M.setup()
     end
   end, { desc = '[A]I [G]it [D]iff analyze' })
 
-  -- ============================================================================
-  -- MODELS - Using 'am' prefix with double letters to avoid conflicts
-  -- ============================================================================
   keymap('n', '<leader>amm', workflows.model_menu, { desc = '[A]I [M]odel [M]enu' })
   keymap('n', '<leader>amu', models.show_usage_stats, { desc = '[A]I [M]odel [U]sage' })
   keymap('n', '<leader>amd', function()
@@ -141,9 +118,6 @@ function M.setup()
     vim.notify('Switched to Claude 4 Sonnet (Complex)', vim.log.levels.INFO)
   end, { desc = '[A]I [M]odel [C]omplex (Claude)' })
 
-  -- ============================================================================
-  -- ANALYSIS/SCANNING - Using 'as' prefix with double letters to avoid conflicts
-  -- ============================================================================
   keymap('n', '<leader>asa', workflows.analyze_file, { desc = '[A]I [S]can [A]ll issues' })
   keymap('n', '<leader>asp', function()
     core.ask [[Analyze this code for performance issues:
@@ -163,7 +137,6 @@ Provide specific optimizations with examples.]]
 Provide specific fixes for each issue found.]]
   end, { desc = '[A]I [S]can [S]ecurity' })
 
-  -- NEW: Accessibility analysis
   keymap('n', '<leader>asw', function()
     core.ask [[Analyze this code for accessibility (a11y) issues:
 - Missing ARIA labels
@@ -174,22 +147,13 @@ Provide specific fixes for each issue found.]]
 Provide specific WCAG 2.1 compliant fixes.]]
   end, { desc = '[A]I [S]can [W]CAG/A11y' })
 
-  -- NEW: TODO analysis
   keymap('n', '<leader>ast', function()
     core.ask 'Find all TODOs, FIXMEs, and HACK comments in this code and suggest specific implementations for each.'
   end, { desc = '[A]I [S]can [T]ODOs' })
 
-  -- ============================================================================
-  -- HELP AND DIAGNOSTICS - Single letters to avoid conflicts
-  -- ============================================================================
   keymap('n', '<leader>ah', workflows.contextual_help, { desc = '[A]I [H]elp (contextual)' })
   keymap('n', '<leader>a?', workflows.explain_error, { desc = '[A]I Explain error' })
 
-  -- ============================================================================
-  -- QUICK/UTILITY FUNCTIONS - Using different single letters to avoid conflicts
-  -- ============================================================================
-
-  -- Quick prompts menu (using 'q' - single letter, no sub-keymaps)
   keymap('n', '<leader>aq', function()
     if ok_prompts then
       local quick_keys = vim.tbl_keys(prompts.quick_prompts)
@@ -205,7 +169,6 @@ Provide specific WCAG 2.1 compliant fixes.]]
     end
   end, { desc = '[A]I [Q]uick prompts menu' })
 
-  -- Debug info (using 'b' - single letter, no sub-keymaps)
   keymap('n', '<leader>ab', function()
     local context = core.get_context()
     local current_model = models.get_current_model()
@@ -237,43 +200,27 @@ Provide specific WCAG 2.1 compliant fixes.]]
     vim.notify(table.concat(debug_info, '\n'), vim.log.levels.INFO)
   end, { desc = '[A]I De[b]ug info' })
 
-  -- ============================================================================
-  -- INDIVIDUAL QUICK ACTIONS - Using unused single letters
-  -- ============================================================================
-
-  -- Quick error analysis (using 'z' - no conflicts)
   keymap('n', '<leader>az', function()
     core.ask 'Explain this error and provide a step-by-step fix with examples.'
   end, { desc = '[A]I Error analy[z]e' })
 
-  -- Quick performance (using 'p' - but need to check for conflicts with prompt history)
-  -- Actually, let's use 'w' for performance (w = fast/quick)
   keymap('n', '<leader>aw', function()
     core.ask 'Analyze performance bottlenecks in this code and suggest specific optimizations.'
   end, { desc = '[A]I Performance (slo[w] → fast)' })
 
-  -- Quick interface extraction (using 'i' - but checking conflicts)
-  -- Let's use 'j' instead
   keymap('n', '<leader>aj', function()
     core.ask 'Extract and create proper TypeScript interfaces from this code with strict typing.'
   end, { desc = '[A]I Interface (o[j]ect)' })
 
-  -- Quick generics (using 'u' - no conflicts)
   keymap('n', '<leader>au', function()
     core.ask 'Improve types using generics where appropriate. Make them more flexible and reusable.'
   end, { desc = '[A]I Generics (yo[u] type)' })
 
-  -- ============================================================================
-  -- EMERGENCY KEYS - Function keys for instant access
-  -- ============================================================================
   keymap('n', '<F1>', workflows.contextual_help, { desc = 'AI Quick Help' })
   keymap({ 'n', 'v' }, '<F2>', function()
     core.quick_action 'fix'
   end, { desc = 'AI Quick Fix' })
 
-  -- ============================================================================
-  -- PROMPT HISTORY - Single letter to avoid conflicts
-  -- ============================================================================
   keymap('n', '<leader>ap', function()
     vim.notify('Use :CopilotChatOpen to see chat history', vim.log.levels.INFO)
   end, { desc = '[A]I [P]rompt history' })
