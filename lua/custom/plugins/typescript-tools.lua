@@ -191,19 +191,6 @@ return {
             vim.b[bufnr].large_file = true
             return
           end
-
-          -- Auto-save imports organization (debounced)
-          local group = vim.api.nvim_create_augroup('TypeScriptOptimized', { clear = false })
-          vim.api.nvim_create_autocmd('BufWritePre', {
-            group = group,
-            buffer = bufnr,
-            callback = function()
-              if not vim.b[bufnr].large_file then
-                -- Only organize imports on save for smaller files
-                vim.cmd 'TSToolsOrganizeImports'
-              end
-            end,
-          })
         end,
       })
 
