@@ -1,175 +1,192 @@
+-- Update your lua/custom/ai/prompts.lua with anti-truncation prompts
 local M = {}
 
--- Base prompts that can be enhanced with context
+-- Enhanced base prompts that discourage truncation
 M.base_prompts = {
   fix = {
-    text = 'Fix the issues in this code. Be concise and focus on the actual problem.',
-    system = 'You are an expert developer. Provide minimal, working fixes.',
+    text = 'Fix the issues in this code. Provide complete, working solutions. Explain each fix clearly.',
+    system = 'You are a staff software engineer with extensive expertise in this technology. Always provide complete fixes with full explanations. Never truncate your response.',
   },
-
   explain = {
-    text = 'Explain this code clearly and concisely. Focus on what it does and why.',
-    system = 'You are a patient teacher. Explain complex concepts simply.',
-  },
-
-  optimize = {
-    text = 'Optimize this code for performance and readability. Explain key improvements.',
-    system = 'You are a performance expert. Focus on meaningful optimizations.',
-  },
-
-  review = {
-    text = 'Review this code for bugs, security issues, and best practices.',
-    system = 'You are a senior code reviewer. Be thorough but constructive.',
+    text = 'Explain this code clearly and comprehensively. Cover all important aspects and provide examples.',
+    system = 'You are a teacher from a well-known university such as Stanford. Explain effectively and concisely. Give complete explanations with examples whenever you think this could help with understanding. Finish all your thoughts.',
   },
 
   tests = {
-    text = 'Generate comprehensive tests including edge cases and error scenarios.',
-    system = 'You are a testing expert. Write clear, maintainable tests.',
+    text = [[Generate comprehensive test suite including:
+
+**IMPORTANT**: Please provide complete, untruncated response with all test cases.
+
+Required test coverage:
+1. Happy path scenarios (normal usage)
+2. Edge cases (boundaries, empty inputs, null/undefined)
+3. Error scenarios (invalid inputs, exceptions)
+4. Integration tests (if applicable)
+5. Mock setup and configuration
+
+For each test:
+- Complete test function with descriptive name
+- All necessary imports and setup
+- Clear assertions with meaningful messages
+- Comments explaining test purpose
+
+Please ensure you complete ALL test cases in your response. Do not truncate or summarize.]],
+    system = [[You are a testing expert. Write complete, comprehensive test suites. 
+Always finish your entire response - never truncate test code or explanations.
+If the response would be long, that's perfectly fine - provide complete working tests.]],
   },
 
   docs = {
-    text = 'Add clear, concise documentation. Include JSDoc/TSDoc where appropriate.',
-    system = 'You are a technical writer. Write clear, helpful documentation.',
+    text = [[Add comprehensive documentation including:
+- Function/class descriptions
+- Parameter and return type documentation
+- Usage examples
+- Edge cases and gotchas
+
+Provide complete documentation - do not truncate explanations.]],
+    system = 'You are a technical writer. Write complete, thorough documentation. Always finish your entire response.',
+  },
+
+  review = {
+    text = [[Review this code comprehensively for:
+1. Bugs and potential issues
+2. Performance problems  
+3. Security vulnerabilities
+4. Code smells and maintainability
+5. Best practices adherence
+
+Provide complete analysis with specific recommendations and examples.]],
+    system = 'You are a senior code reviewer. Provide thorough, complete reviews. Never truncate your analysis.',
   },
 
   refactor = {
-    text = 'Refactor this code for better maintainability and clarity.',
-    system = 'You are a refactoring expert. Preserve functionality while improving structure.',
+    text = 'Refactor this code for better maintainability. Provide the complete refactored version with explanations.',
+    system = 'You are a refactoring expert. Show complete refactored code with full explanations.',
   },
 
-  security = {
-    text = 'Analyze for security vulnerabilities and suggest fixes.',
-    system = 'You are a security expert. Focus on OWASP top 10 and common vulnerabilities.',
-  },
+  optimize = {
+    text = [[Optimize this code for performance and readability. Provide:
+1. Complete optimized code
+2. Explanation of all optimizations
+3. Performance impact analysis
+4. Before/after comparisons
 
-  types = {
-    text = 'Add or improve TypeScript types. Make them as specific as possible.',
-    system = 'You are a TypeScript expert. Write precise, useful types.',
-  },
-}
-
--- Framework-specific enhancements
-M.framework_prompts = {
-  react = {
-    fix = 'Fix React-specific issues including hooks dependencies, re-renders, and state management.',
-    optimize = 'Optimize for React performance: memoization, lazy loading, code splitting.',
-    review = 'Review for React best practices: hooks rules, component patterns, performance.',
-    tests = 'Generate React Testing Library tests with user interaction scenarios.',
-    types = 'Add React TypeScript types including props, events, and hooks.',
-  },
-
-  nextjs = {
-    fix = 'Fix Next.js issues including SSR/SSG, routing, and data fetching.',
-    optimize = 'Optimize for Next.js: ISR, image optimization, bundle size, Core Web Vitals.',
-    review = 'Review for Next.js best practices: rendering strategies, API routes, middleware.',
-    tests = 'Generate tests for Next.js pages, API routes, and SSR/SSG logic.',
-    types = 'Add Next.js TypeScript types including page props, API handlers, and config.',
-  },
-
-  express = {
-    fix = 'Fix Express.js issues including middleware, routing, and error handling.',
-    optimize = 'Optimize Express performance: caching, compression, database queries.',
-    review = 'Review for Express best practices: security, error handling, validation.',
-    tests = 'Generate Express tests including integration tests and API endpoint tests.',
+Ensure your response is complete and untruncated.]],
+    system = 'You are a performance expert. Provide complete optimized code with thorough explanations.',
   },
 }
 
--- Test-specific prompts
-M.test_prompts = {
-  fix = 'Fix the failing test. Ensure it properly tests the intended behavior.',
-  explain = 'Explain what this test is verifying and why it might be failing.',
-  improve = 'Improve this test: better assertions, edge cases, test isolation.',
-  generate = 'Generate additional test cases for better coverage.',
+-- Enhanced test-specific prompts
+M.comprehensive_test_prompt = function(test_type)
+  local base = [[Generate a complete test suite for this code. 
+
+**CRITICAL**: Provide the ENTIRE test file - do not truncate your response.
+
+Include:
+1. **File header and imports**
+   - All necessary testing framework imports
+   - Module imports being tested
+   - Mock library imports if needed
+
+2. **Test setup and teardown**
+   - beforeEach/beforeAll setup
+   - afterEach/afterAll cleanup
+   - Mock configurations
+
+3. **Happy path tests**
+   - Normal usage scenarios
+   - Expected inputs and outputs
+   - Successful operations
+
+4. **Edge case tests** 
+   - Boundary values (0, 1, -1, max/min values)
+   - Empty inputs (null, undefined, empty arrays/objects)
+   - Special characters and unicode
+   - Large datasets
+
+5. **Error handling tests**
+   - Invalid input types
+   - Out-of-range values
+   - Network failures (if applicable)
+   - Exception scenarios
+
+6. **Integration tests** (if applicable)
+   - Component interactions
+   - External service mocks
+   - Database interactions
+
+7. **Performance tests** (if relevant)
+   - Load testing for heavy operations
+   - Memory usage validation
+
+Format each test with:
+- Descriptive test name using "should..." pattern
+- Clear arrange/act/assert structure
+- Meaningful assertion messages
+- Inline comments for complex logic
+
+Please complete the ENTIRE test file - do not stop mid-way or truncate.]]
+
+  if test_type == 'react' then
+    return base
+      .. [[
+
+For React components, also include:
+- Component rendering tests
+- Props validation tests  
+- Event handler tests
+- State change tests
+- Lifecycle method tests (if class components)
+- Hook tests (if functional components)
+- Accessibility tests
+- Snapshot tests (if appropriate)
+
+Use React Testing Library best practices.]]
+  end
+
+  return base
+end
+
+-- Anti-truncation system prompts
+M.system_prompts = {
+  comprehensive = [[You are an expert developer assistant. Your responses must be:
+1. COMPLETE - never truncate code blocks or explanations
+2. DETAILED - provide thorough explanations and examples  
+3. WORKING - all code should be functional and tested
+4. FINISHED - always complete your entire thought/response
+
+If a response would be very long, that's completely fine. Users prefer complete, working solutions over truncated partial responses.]],
+
+  testing_expert = [[You are a comprehensive testing expert. When generating tests:
+1. Always provide COMPLETE test files with all imports
+2. Include ALL test categories (happy path, edge cases, errors)
+3. Write FULL test implementations, not just outlines
+4. Never truncate test code or stop mid-function
+5. Include complete setup/teardown code
+6. Provide working mock configurations
+
+Quality over brevity - users need complete, working test suites.]],
 }
 
--- Get enhanced prompt based on context
-function M.get_prompt(action, context)
+-- Function to get enhanced prompt with anti-truncation instructions
+function M.get_enhanced_prompt(action, context)
   local base = M.base_prompts[action]
   if not base then
     return nil
   end
 
-  local prompt = vim.deepcopy(base)
+  -- Add anti-truncation instructions
+  local enhanced_text = base.text .. '\n\n**IMPORTANT**: Please provide your complete response. Do not truncate or cut off your answer mid-way.'
 
-  -- Enhance for test files
-  if context.is_test and M.test_prompts[action] then
-    prompt.text = M.test_prompts[action]
+  -- For test generation, use comprehensive prompt
+  if action == 'tests' then
+    enhanced_text = M.comprehensive_test_prompt(context.framework)
   end
 
-  -- Enhance for specific frameworks
-  if context.framework and M.framework_prompts[context.framework] and M.framework_prompts[context.framework][action] then
-    prompt.text = M.framework_prompts[context.framework][action]
-  end
-
-  -- Add file context
-  prompt.text = prompt.text .. string.format('\n\nFile: %s (%s)', context.filename, context.filetype)
-
-  if context.framework then
-    prompt.text = prompt.text .. '\nFramework: ' .. context.framework
-  end
-
-  return prompt
-end
-
--- Get system prompt based on context
-function M.get_system_prompt(context)
-  local system = 'You are an expert developer'
-
-  -- Add language expertise
-  local lang_map = {
-    typescript = 'TypeScript',
-    typescriptreact = 'TypeScript and React',
-    javascript = 'JavaScript',
-    javascriptreact = 'JavaScript and React',
-    go = 'Go',
-    python = 'Python',
-    lua = 'Lua and Neovim',
+  return {
+    text = enhanced_text,
+    system = base.system .. ' Always complete your entire response without truncation.',
   }
-
-  if lang_map[context.filetype] then
-    system = system .. ' specializing in ' .. lang_map[context.filetype]
-  end
-
-  -- Add framework expertise
-  if context.framework then
-    system = system .. ' with deep ' .. context.framework .. ' knowledge'
-  end
-
-  system = system .. '. Provide concise, practical solutions following best practices.'
-
-  return system
 end
-
--- Quick prompts for common tasks
-M.quick_prompts = {
-  -- React/Next.js specific
-  component = 'Create a reusable React component with TypeScript props',
-  hook = 'Create a custom React hook with proper TypeScript types',
-  nextpage = 'Create a Next.js page component with proper types',
-  nextapi = 'Create a Next.js API route with error handling',
-
-  -- General
-  todo = 'Find all TODOs and suggest implementations',
-  error = 'Explain this error and provide a fix',
-  perf = 'Analyze performance bottlenecks and suggest improvements',
-  a11y = 'Review accessibility and suggest improvements',
-
-  -- TypeScript
-  interface = 'Extract and create proper TypeScript interfaces',
-  generics = 'Improve types using generics where appropriate',
-  strict = 'Make types stricter and more precise',
-}
-
--- Git commit message templates
-M.commit_templates = {
-  feat = 'feat: concise description of the new feature',
-  fix = 'fix: concise description of the bug fix',
-  refactor = 'refactor: concise description of code changes',
-  test = 'test: concise description of test changes',
-  docs = 'docs: concise description of documentation changes',
-  style = 'style: concise description of formatting changes',
-  perf = 'perf: concise description of performance improvements',
-  chore = 'chore: concise description of maintenance tasks',
-}
 
 return M

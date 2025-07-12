@@ -101,7 +101,7 @@ function M.ask(prompt, opts)
   if not opts.system_prompt then
     local context = M.get_context()
     local prompts = require 'custom.ai.prompts'
-    opts.system_prompt = prompts.get_system_prompt(context)
+    opts.system_prompt = prompts.system_prompts.comprehensive
   end
 
   -- Add model info

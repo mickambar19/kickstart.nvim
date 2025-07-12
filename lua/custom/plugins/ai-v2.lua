@@ -1,5 +1,4 @@
 return {
-  -- GitHub Copilot for completions
   {
     'zbirenbaum/copilot.lua',
     cmd = 'Copilot',
@@ -27,7 +26,7 @@ return {
           hide_during_completion = true,
           debounce = 75,
           keymap = {
-            accept = false, -- Use CopilotChat for accepting suggestions
+            accept = '<C-j>',
             accept_word = '<M-w>',
             accept_line = '<M-l>',
             next = '<M-]>',
@@ -46,7 +45,6 @@ return {
         },
       }
 
-      -- Toggle Copilot
       vim.keymap.set('n', '<leader>aot', function()
         require('copilot.suggestion').toggle_auto_trigger()
         local status = require('copilot.suggestion').is_visible() and 'enabled' or 'disabled'
@@ -54,8 +52,6 @@ return {
       end, { desc = '[AI] Toggle Copilot' })
     end,
   },
-
-  -- CopilotChat with enhanced workflow
   {
     'CopilotC-Nvim/CopilotChat.nvim',
     branch = 'main',
@@ -67,31 +63,53 @@ return {
     build = 'make tiktoken',
     opts = function()
       return {
-        model = 'gpt-4.1',
+        model = 'claude-sonnet-4',
+        max_tokens = 4000,
+        temperature = 0.1,
+
         window = {
           layout = 'vertical',
-          width = 0.4,
-          height = 0.6,
+          width = 0.5,
+          height = 0.8,
           relative = 'editor',
           border = 'rounded',
         },
+
         auto_follow_cursor = true,
         auto_insert_mode = false,
+        clear_chat_on_new_prompt = false,
+
+        system_prompt = [[You are an AI programming assistant. 
+When generating code, especially tests, provide complete, working examples.
+Always finish your responses completely - never truncate code blocks or explanations.
+If a response would be very long, break it into logical sections but complete each section.]],
+
         mappings = {
-          complete = { insert = false },
+          complete = { insert = '<C-j>' },
           close = { normal = 'q', insert = '<Esc>' },
           reset = { normal = '<C-x>' },
           submit_prompt = { normal = '<CR>', insert = '<C-m>' },
           accept_diff = { normal = '<C-y>', insert = '<C-y>' },
           yank_diff = { normal = 'gy' },
           show_diff = { normal = 'gd' },
+          continue_response = { normal = '<C-n>' },
         },
+
+        callback = function(response, source)
+          if response and (response:match '```[^`]*$' or response:match '%.%.%.$' or response:match '[^%.]$' and #response > 500) then
+            vim.notify('Response may be truncated. Press <C-n> to continue.', vim.log.levels.WARN)
+          end
+        end,
       }
     end,
+
     config = function(_, opts)
       require('CopilotChat').setup(opts)
 
-      -- Setup AI modules with error handling
+      vim.api.nvim_create_user_command('ContinueResponse', function()
+        require('CopilotChat').ask 'Continue the previous response from where it was cut off. Complete any unfinished code blocks or explanations.'
+      end, { desc = 'Continue truncated AI response' })
+
       local function setup_ai_modules()
         local ok_keymaps, keymaps_err = pcall(require, 'custom.ai.keymaps')
         local ok_commands, commands_err = pcall(require, 'custom.ai.commands')
@@ -112,7 +130,6 @@ return {
           return
         end
 
-        -- Setup modules
         local ok_setup_keymaps = pcall(require('custom.ai.keymaps').setup)
         if not ok_setup_keymaps then
           vim.notify('Failed to setup AI keymaps', vim.log.levels.ERROR)
@@ -126,10 +143,8 @@ return {
         vim.notify('AI modules loaded successfully', vim.log.levels.INFO)
       end
 
-      -- Delay setup to ensure all dependencies are loaded
       vim.defer_fn(setup_ai_modules, 1000)
 
-      -- Setup autocmds
       vim.api.nvim_create_autocmd('User', {
         pattern = 'CopilotChatOpen',
         callback = function()
@@ -141,8 +156,7 @@ return {
 
               vim.notify(
                 string.format(
-                  [[
-AI Assistant Ready (%s)
+                  [[AI Assistant Ready (%s)
 %s
 • <C-y> = Apply changes
 • <leader>am = Switch model
@@ -157,16 +171,13 @@ AI Assistant Ready (%s)
         end,
       })
 
-      -- Basic fallback keymaps in case modules fail
       vim.keymap.set('n', '<leader>aa', '<cmd>CopilotChatToggle<CR>', { desc = '[A]I Toggle Chat' })
       vim.keymap.set('n', '<leader>ar', '<cmd>CopilotChatReset<CR>', { desc = '[A]I Reset Chat' })
 
-      -- Emergency fix keymap
       vim.keymap.set({ 'n', 'v' }, '<F2>', function()
         require('CopilotChat').ask 'Fix the issues in this code. Be concise and focus on the actual problem.'
       end, { desc = 'AI Quick Fix' })
 
-      -- Emergency help keymap
       vim.keymap.set('n', '<F1>', function()
         require('CopilotChat').ask 'Explain this code clearly and concisely. Focus on what it does and why.'
       end, { desc = 'AI Quick Help' })
