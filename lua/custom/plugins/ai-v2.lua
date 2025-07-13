@@ -56,7 +56,6 @@ return {
     'CopilotC-Nvim/CopilotChat.nvim',
     branch = 'main',
     dependencies = {
-      'github/copilot.vim',
       'nvim-lua/plenary.nvim',
       'nvim-telescope/telescope.nvim',
     },
@@ -111,36 +110,51 @@ If a response would be very long, break it into logical sections but complete ea
       end, { desc = 'Continue truncated AI response' })
 
       local function setup_ai_modules()
-        local ok_keymaps, keymaps_err = pcall(require, 'custom.ai.keymaps')
-        local ok_commands, commands_err = pcall(require, 'custom.ai.commands')
-        local ok_models, models_err = pcall(require, 'custom.ai.models')
+        local modules = {
+          { name = 'keymaps', path = 'custom.ai.keymaps' },
+          { name = 'commands', path = 'custom.ai.commands' },
+          { name = 'models', path = 'custom.ai.models' },
+        }
 
-        if not ok_keymaps then
-          vim.notify('AI keymaps failed to load: ' .. tostring(keymaps_err), vim.log.levels.ERROR)
+        local loaded_modules = {}
+        local failed_modules = {}
+
+        -- Load all modules first
+        for _, module in ipairs(modules) do
+          local ok, mod = pcall(require, module.path)
+          if ok then
+            loaded_modules[module.name] = mod
+          else
+            table.insert(failed_modules, { name = module.name, error = mod })
+          end
+        end
+
+        -- Report any failures
+        if #failed_modules > 0 then
+          local error_msg = 'Failed to load AI modules:\n'
+          for _, fail in ipairs(failed_modules) do
+            error_msg = error_msg .. '  • ' .. fail.name .. ': ' .. fail.error .. '\n'
+          end
+          vim.notify(error_msg, vim.log.levels.ERROR)
           return
         end
 
-        if not ok_commands then
-          vim.notify('AI commands failed to load: ' .. tostring(commands_err), vim.log.levels.ERROR)
-          return
+        -- Setup modules if all loaded successfully
+        local setup_success = {}
+        for name, mod in pairs(loaded_modules) do
+          if mod.setup then
+            local ok, err = pcall(mod.setup)
+            if not ok then
+              vim.notify('Failed to setup ' .. name .. ': ' .. err, vim.log.levels.ERROR)
+            else
+              table.insert(setup_success, name)
+            end
+          end
         end
 
-        if not ok_models then
-          vim.notify('AI models failed to load: ' .. tostring(models_err), vim.log.levels.ERROR)
-          return
+        if #setup_success > 0 then
+          vim.notify('AI modules loaded: ' .. table.concat(setup_success, ', '), vim.log.levels.INFO)
         end
-
-        local ok_setup_keymaps = pcall(require('custom.ai.keymaps').setup)
-        if not ok_setup_keymaps then
-          vim.notify('Failed to setup AI keymaps', vim.log.levels.ERROR)
-        end
-
-        local ok_setup_commands = pcall(require('custom.ai.commands').setup)
-        if not ok_setup_commands then
-          vim.notify('Failed to setup AI commands', vim.log.levels.ERROR)
-        end
-
-        vim.notify('AI modules loaded successfully', vim.log.levels.INFO)
       end
 
       vim.defer_fn(setup_ai_modules, 1000)

@@ -1,5 +1,13 @@
--- Update your lua/custom/ai/prompts.lua with anti-truncation prompts
 local M = {}
+
+-- Add the missing quick_prompts property
+M.quick_prompts = {
+  security = 'Analyze for security vulnerabilities: XSS, SQL injection, auth issues',
+  performance = 'Analyze performance bottlenecks and suggest optimizations',
+  accessibility = 'Review for accessibility (a11y) issues and WCAG compliance',
+  refactor = 'Suggest refactoring improvements for better maintainability',
+  tests = 'Generate comprehensive test cases including edge cases',
+}
 
 -- Enhanced base prompts that discourage truncation
 M.base_prompts = {
@@ -75,6 +83,20 @@ Ensure your response is complete and untruncated.]],
     system = 'You are a performance expert. Provide complete optimized code with thorough explanations.',
   },
 }
+
+-- Add the missing get_prompt function that core.lua expects
+function M.get_prompt(action_name, _context)
+  local prompt = M.base_prompts[action_name]
+  if not prompt then
+    return nil
+  end
+
+  -- Return the prompt structure that core.lua expects
+  return {
+    text = prompt.text,
+    system = prompt.system or M.system_prompts.comprehensive,
+  }
+end
 
 -- Enhanced test-specific prompts
 M.comprehensive_test_prompt = function(test_type)

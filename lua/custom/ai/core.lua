@@ -74,11 +74,14 @@ function M.get_context()
   end
 
   -- Check if cursor is in a function
-  local node = vim.treesitter.get_node()
-  if node then
+  local ok, node = pcall(vim.treesitter.get_node)
+  if ok and node then
     local parent = node:parent()
     while parent do
-      if vim.tbl_contains({ 'function_declaration', 'method_definition', 'arrow_function' }, parent:type()) then
+      local ok_type, node_type = pcall(function()
+        return parent:type()
+      end)
+      if ok_type and vim.tbl_contains({ 'function_declaration', 'method_definition', 'arrow_function' }, node_type) then
         context.in_function = true
         break
       end

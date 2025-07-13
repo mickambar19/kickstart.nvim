@@ -114,7 +114,7 @@ function M.track_usage(model_name)
     return
   end
 
-  -- Initialize usage if needed
+  -- Initialize usage if needed (SAFE)
   if not state.usage[model_name] then
     state.usage[model_name] = {
       count = 0,
@@ -131,11 +131,13 @@ function M.track_usage(model_name)
     }
   end
 
-  -- Increment usage
-  state.usage[model_name].count = state.usage[model_name].count + 1
+  -- SAFE increment usage
+  local usage_data = state.usage[model_name] or { count = 0 }
+  usage_data.count = usage_data.count + 1
+  state.usage[model_name] = usage_data
 
-  -- Warn if approaching limit
-  local usage = state.usage[model_name].count
+  -- Check limits safely
+  local usage = usage_data.count
   local limit = model_info.limit
 
   if usage >= limit then
