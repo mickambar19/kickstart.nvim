@@ -83,7 +83,7 @@ function M.smart_menu()
   end)
 end
 
--- Smart git commit with better UI
+-- Enhanced smart commit with better message extraction
 function M.smart_commit()
   local staged_diff = vim.fn.system 'git diff --cached'
   local has_staged = staged_diff ~= ''
@@ -109,70 +109,229 @@ function M.smart_commit()
     staged_diff = vim.fn.system 'git diff --cached'
   end
 
-  -- Generate commit message
-  core.ask('Generate a conventional commit message for these changes:\n\n' .. staged_diff, {
+  -- Generate commit message with more specific prompt
+  core.ask([[Generate ONLY a conventional commit message for these changes. 
+Respond with just the commit message, no explanations or additional text.
+Format: type(scope): description
+
+Examples:
+- feat: add user authentication
+- fix(api): resolve timeout issues  
+- docs: update installation guide
+
+Changes:
+]] .. staged_diff, {
     callback = function(response)
-      local msg = response:match '^[%s]*([^\n]+)' or response
-      msg = msg:gsub('^["\']', ''):gsub('["\']$', '')
+      -- Enhanced message extraction
+      local msg = M.extract_commit_message(response)
+
+      if not msg or msg == '' then
+        vim.notify('Failed to generate commit message', vim.log.levels.ERROR)
+        return
+      end
 
       vim.schedule(function()
-        -- Show commit preview
-        local lines = {
-          'Commit message:',
-          '',
-          msg,
-          '',
-          'Files to commit:',
-        }
-
-        local files = vim.fn.system 'git diff --cached --name-status'
-        for line in files:gmatch '[^\n]+' do
-          table.insert(lines, '  ' .. line)
-        end
-
-        local buf = vim.api.nvim_create_buf(false, true)
-        vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
-
-        local win = vim.api.nvim_open_win(buf, true, {
-          relative = 'editor',
-          width = math.min(80, vim.o.columns - 4),
-          height = math.min(#lines + 4, vim.o.lines - 4),
-          col = (vim.o.columns - 80) / 2,
-          row = (vim.o.lines - #lines - 4) / 2,
-          style = 'minimal',
-          border = 'rounded',
-        })
-
-        vim.keymap.set('n', '<CR>', function()
-          vim.api.nvim_win_close(win, true)
-          local result = vim.fn.system('git commit -m ' .. vim.fn.shellescape(msg))
-          if vim.v.shell_error == 0 then
-            vim.notify('✅ Committed successfully', vim.log.levels.INFO)
-          else
-            vim.notify('❌ Commit failed: ' .. result, vim.log.levels.ERROR)
-          end
-        end, { buffer = buf, desc = 'Confirm commit' })
-
-        vim.keymap.set('n', 'q', function()
-          vim.api.nvim_win_close(win, true)
-        end, { buffer = buf, desc = 'Cancel commit' })
-
-        vim.keymap.set('n', 'e', function()
-          vim.api.nvim_win_close(win, true)
-          local edited = vim.fn.input('Edit message: ', msg)
-          if edited ~= '' then
-            vim.fn.system('git commit -m ' .. vim.fn.shellescape(edited))
-          end
-        end, { buffer = buf, desc = 'Edit message' })
-
-        -- Add help text
-        vim.api.nvim_buf_set_lines(buf, -1, -1, false, {
-          '',
-          "Press: <CR> to commit, 'q' to cancel, 'e' to edit",
-        })
+        M.show_commit_preview(msg)
       end)
     end,
   })
+end
+
+-- Extract commit message from AI response
+function M.extract_commit_message(response)
+  if not response or response == '' then
+    return nil
+  end
+
+  -- Remove leading/trailing whitespace
+  local clean_response = response:gsub('^%s+', ''):gsub('%s+$', '')
+
+  -- Try different extraction patterns
+  local patterns = {
+    -- Look for conventional commit format directly
+    '^([a-z]+%([^)]*%): .+)$',
+    '^([a-z]+: .+)$',
+    -- Look for commit message in quotes
+    '"([^"]+)"',
+    "'([^']+)'",
+    -- Look for first meaningful line that looks like a commit
+    '^[^:]*:%s*(.+)$',
+    -- Fallback: first non-empty line that doesn't look like explanation
+    '^([^.]*[^%.])$',
+  }
+
+  -- Split into lines for processing
+  local lines = {}
+  for line in clean_response:gmatch '[^\r\n]+' do
+    local trimmed = line:gsub('^%s+', ''):gsub('%s+$', '')
+    if trimmed ~= '' then
+      table.insert(lines, trimmed)
+    end
+  end
+
+  -- Try to find commit message using patterns
+  for _, line in ipairs(lines) do
+    -- Skip obvious explanation lines
+    if not line:match '^[Bb]ased on' and not line:match '^[Hh]ere' and not line:match '^[Tt]he ' and not line:match '^[Ii]n this' then
+      for _, pattern in ipairs(patterns) do
+        local match = line:match(pattern)
+        if match then
+          return match:gsub('^["\']', ''):gsub('["\']$', '')
+        end
+      end
+    end
+  end
+
+  -- Fallback: use first reasonable line
+  for _, line in ipairs(lines) do
+    if #line > 10 and #line < 100 and not line:match '^[Bb]ased on' and not line:match '^[Hh]ere' then
+      return line:gsub('^["\']', ''):gsub('["\']$', '')
+    end
+  end
+
+  return nil
+end
+
+-- Show commit preview with improved layout
+function M.show_commit_preview(msg)
+  -- Prepare content
+  local lines = {
+    '📝 Commit Preview',
+    '═══════════════════════════════════════',
+    '',
+    '💬 Commit Message:',
+    msg,
+    '',
+    '📁 Files to commit:',
+  }
+
+  local files = vim.fn.system 'git diff --cached --name-status'
+  if files ~= '' then
+    for line in files:gmatch '[^\n]+' do
+      local status = line:match '^(%a)'
+      local file = line:match '^%a%s+(.+)'
+      local icon = status == 'M' and '📝' or status == 'A' and '➕' or status == 'D' and '🗑️' or '📄'
+      table.insert(lines, string.format('  %s %s', icon, file))
+    end
+  end
+
+  table.insert(lines, '')
+  table.insert(lines, '⌨️  Actions:')
+  table.insert(lines, '  <Enter> - Commit with this message')
+  table.insert(lines, '  e       - Edit message')
+  table.insert(lines, '  q       - Cancel')
+
+  -- Create buffer and window
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+
+  -- Set buffer options
+  vim.api.nvim_buf_set_option(buf, 'modifiable', false)
+  vim.api.nvim_buf_set_option(buf, 'filetype', 'gitcommit')
+
+  -- Calculate dimensions
+  local width = math.max(60, math.min(100, vim.o.columns - 10))
+  local height = math.min(#lines + 4, vim.o.lines - 6)
+
+  local win = vim.api.nvim_open_win(buf, true, {
+    relative = 'editor',
+    width = width,
+    height = height,
+    col = (vim.o.columns - width) / 2,
+    row = (vim.o.lines - height) / 2,
+    style = 'minimal',
+    border = 'rounded',
+    title = ' Git Commit ',
+    title_pos = 'center',
+  })
+
+  -- Set window options
+  vim.api.nvim_win_set_option(win, 'wrap', true)
+  vim.api.nvim_win_set_option(win, 'linebreak', true)
+
+  -- Keymaps
+  local function close_and_commit(commit_msg)
+    vim.api.nvim_win_close(win, true)
+    local result = vim.fn.system('git commit -m ' .. vim.fn.shellescape(commit_msg))
+    if vim.v.shell_error == 0 then
+      vim.notify('✅ Committed successfully', vim.log.levels.INFO)
+    else
+      vim.notify('❌ Commit failed: ' .. result, vim.log.levels.ERROR)
+    end
+  end
+
+  -- Confirm commit
+  vim.keymap.set('n', '<CR>', function()
+    close_and_commit(msg)
+  end, { buffer = buf, desc = 'Confirm commit' })
+
+  -- Cancel
+  vim.keymap.set('n', 'q', function()
+    vim.api.nvim_win_close(win, true)
+  end, { buffer = buf, desc = 'Cancel commit' })
+
+  -- Edit message
+  vim.keymap.set('n', 'e', function()
+    vim.api.nvim_win_close(win, true)
+
+    -- Create input buffer for editing
+    local input_buf = vim.api.nvim_create_buf(false, true)
+    vim.api.nvim_buf_set_lines(input_buf, 0, -1, false, { msg })
+
+    local input_win = vim.api.nvim_open_win(input_buf, true, {
+      relative = 'editor',
+      width = width,
+      height = 3,
+      col = (vim.o.columns - width) / 2,
+      row = (vim.o.lines - 3) / 2,
+      style = 'minimal',
+      border = 'rounded',
+      title = ' Edit Commit Message ',
+      title_pos = 'center',
+    })
+
+    vim.api.nvim_buf_set_option(input_buf, 'modifiable', true)
+    vim.cmd 'startinsert!'
+
+    vim.keymap.set('n', '<CR>', function()
+      local edited_lines = vim.api.nvim_buf_get_lines(input_buf, 0, -1, false)
+      local edited_msg = table.concat(edited_lines, ' '):gsub('^%s+', ''):gsub('%s+$', '')
+      vim.api.nvim_win_close(input_win, true)
+
+      if edited_msg ~= '' then
+        close_and_commit(edited_msg)
+      end
+    end, { buffer = input_buf })
+
+    vim.keymap.set('n', '<Esc>', function()
+      vim.api.nvim_win_close(input_win, true)
+    end, { buffer = input_buf })
+  end, { buffer = buf, desc = 'Edit message' })
+
+  -- Add syntax highlighting for better UX
+  vim.defer_fn(function()
+    if vim.api.nvim_win_is_valid(win) then
+      vim.api.nvim_win_call(win, function()
+        vim.cmd [[
+          syntax match GitCommitTitle /📝 Commit Preview/
+          syntax match GitCommitSeparator /═/
+          syntax match GitCommitLabel /💬 Commit Message:/
+          syntax match GitCommitLabel /📁 Files to commit:/
+          syntax match GitCommitLabel /⌨️  Actions:/
+          syntax match GitCommitAdded /➕/
+          syntax match GitCommitModified /📝/
+          syntax match GitCommitDeleted /🗑️/
+          
+          highlight GitCommitTitle guifg=#61afef gui=bold
+          highlight GitCommitSeparator guifg=#3e4451
+          highlight GitCommitLabel guifg=#e5c07b gui=bold
+          highlight GitCommitAdded guifg=#98c379
+          highlight GitCommitModified guifg=#e5c07b
+          highlight GitCommitDeleted guifg=#e06c75
+        ]]
+      end)
+    end
+  end, 50)
 end
 
 -- Component creation workflow
