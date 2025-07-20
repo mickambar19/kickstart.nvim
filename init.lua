@@ -1150,6 +1150,22 @@ require('lazy').setup({
         'yaml',
         'dockerfile',
         'jinja',
+        -- SQL and database related
+        'sql',
+        -- Additional languages for markdown code blocks
+        'javascript',
+        'typescript',
+        'json',
+        'css',
+        'rust',
+        'java',
+        'php',
+        'ruby',
+        'perl',
+        'r',
+        'toml',
+        'xml',
+        'csv',
       },
       -- Autoinstall languages that are not installed
       auto_install = true,
@@ -1159,6 +1175,9 @@ require('lazy').setup({
         --  If you are experiencing weird indenting issues, add the language to
         --  the list of additional_vim_regex_highlighting and disabled languages for indent.
         additional_vim_regex_highlighting = { 'ruby' },
+      },
+      injection = {
+        enable = true,
       },
       indent = { enable = true, disable = { 'ruby' } },
       fold = {
