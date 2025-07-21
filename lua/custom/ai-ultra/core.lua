@@ -284,10 +284,14 @@ function M.extract_node_name(node)
     return 'unknown'
   end
 
-  for _, match in query:iter_matches(node, 0) do
+  local bufnr = vim.api.nvim_get_current_buf()
+  for _, match, _ in query:iter_matches(node, bufnr) do
     for id, captured_node in pairs(match) do
       if query.captures[id] == 'name' then
-        return vim.treesitter.get_node_text(captured_node, 0)
+        local ok_text, text = pcall(vim.treesitter.get_node_text, captured_node, bufnr)
+        if ok_text then
+          return text
+        end
       end
     end
   end
