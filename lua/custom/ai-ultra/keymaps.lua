@@ -6,6 +6,7 @@ function M.setup()
   local core = require 'custom.ai-ultra.core'
   local ok_workflows, workflows = pcall(require, 'custom.ai-ultra.workflows')
   local ok_models, models = pcall(require, 'custom.ai-ultra.models')
+  local ok_layout, layout = pcall(require, 'custom.ai-ultra.layout')
 
   -- Validate core functions exist
   if not core or type(core.quick_action) ~= 'function' then
@@ -89,7 +90,10 @@ function M.setup()
   end, { desc = '[A]I As[K] custom prompt' })
 
   -- Chat controls - no conflicts
-  keymap('n', '<leader>aa', '<cmd>CopilotChatToggle<CR>', { desc = '[A]I [A]ctivate chat' })
+  --
+  if ok_layout and layout then
+    layout.setup_layout()
+  end
   keymap('n', '<leader>az', '<cmd>CopilotChatReset<CR>', { desc = '[A]I [Z]ero/reset chat' })
 
   -- ============================================================================
