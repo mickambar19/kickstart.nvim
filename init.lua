@@ -1068,9 +1068,14 @@ require('lazy').setup({
     config = function()
       ---@diagnostic disable-next-line: missing-fields
       require('tokyonight').setup {
+        style = 'night',
         styles = {
           comments = { italic = false }, -- Disable italics in comments
+          sidebars = 'transparent', -- Make sidebars transparent
+          floats = 'transparent', -- Make floating windows transparent
         },
+        transparent = true, -- Enable transparency
+        terminal_colors = true, -- Enable terminal colors
       }
 
       -- Load the colorscheme here.
