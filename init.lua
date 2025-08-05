@@ -112,15 +112,6 @@ vim.keymap.set('n', '<leader>tl', function()
   end
 end, { desc = '[T]oggle [L]ine numbers' })
 
---- Copilot related ---
-vim.keymap.set('n', '<leader>ta', function()
-  vim.g.copilot_enabled = not vim.g.copilot_enabled
-  local status = vim.g.copilot_enabled and 'enabled' or 'disabled'
-  vim.notify('Copilot ' .. status, vim.log.levels.INFO)
-end, { desc = '[T]oggle [A]I Copilot' })
-
--- Copilot related end
-
 vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
 vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
 vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
