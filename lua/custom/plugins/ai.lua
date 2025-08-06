@@ -1,8 +1,3 @@
--- This
--- const numGenerator = fun
--- local numGenerator = function()
---   return math.random(1,
---
 return {
   {
     'zbirenbaum/copilot.lua',
