@@ -1002,12 +1002,14 @@ require('lazy').setup({
       keymap = {
         preset = 'default', -- Use the default preset
 
-        -- Disable Tab for blink.cmp (let Copilot handle it)
-        ['<Tab>'] = {},
-
-        -- Keep Shift-Tab for snippet navigation
-        -- (this is already in default preset, but being explicit)
-        ['<S-Tab>'] = { 'snippet_backward', 'fallback' },
+        -- -- Disable Tab for blink.cmp (let Copilot handle it)
+        -- ['<Tab>'] = {},
+        --
+        -- -- Keep Shift-Tab for snippet navigation
+        -- -- (this is already in default preset, but being explicit)
+        -- ['<S-Tab>'] = { 'snippet_backward', 'fallback' },
+        ['<C-l>'] = { 'snippet_forward' }, -- Use Ctrl-l to navigate forward in snippets
+        ['<C-h>'] = { 'snippet_backward' }, -- Use Ctrl-h to navigate backward in snippets
       },
 
       appearance = {
@@ -1161,3 +1163,52 @@ require('lazy').setup({
     },
   },
 })
+
+-- Smart Tab function with priority: LuaSnip → Copilot → Default
+vim.keymap.set({ 'i', 's' }, '<Tab>', function()
+  local luasnip = require 'luasnip'
+
+  -- Priority 1: LuaSnip snippet navigation
+  if luasnip.expand_or_jumpable() then
+    luasnip.expand_or_jump()
+    return
+  end
+
+  -- Priority 2: Copilot suggestion
+  local copilot_ok, copilot = pcall(require, 'copilot.suggestion')
+  if copilot_ok and copilot.is_visible() then
+    copilot.accept()
+    return
+  end
+
+  -- Priority 3: blink.cmp completion (if menu is open)
+  local blink_ok, blink = pcall(require, 'blink.cmp')
+  if blink_ok and blink.is_visible() then
+    blink.accept()
+    return
+  end
+
+  -- Fallback: Normal Tab (indentation)
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Tab>', true, false, true), 'n', false)
+end, { desc = 'Smart Tab: LuaSnip → Copilot → Completion → Indent' })
+
+-- Smart Shift+Tab for backward navigation
+vim.keymap.set({ 'i', 's' }, '<S-Tab>', function()
+  local luasnip = require 'luasnip'
+
+  -- Priority 1: LuaSnip backward navigation
+  if luasnip.jumpable(-1) then
+    luasnip.jump(-1)
+    return
+  end
+
+  -- Priority 2: blink.cmp previous completion
+  local blink_ok, blink = pcall(require, 'blink.cmp')
+  if blink_ok and blink.is_visible() then
+    blink.select_prev()
+    return
+  end
+
+  -- Fallback: Unindent
+  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<C-d>', true, false, true), 'n', false)
+end, { desc = 'Smart Shift+Tab: LuaSnip back → Completion prev → Unindent' })
