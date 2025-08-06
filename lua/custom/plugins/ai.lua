@@ -24,7 +24,7 @@ return {
           enabled = true,
           auto_trigger = true,
           hide_during_completion = true,
-          debounce = 50,
+          debounce = 75,
           keymap = {
             accept = '<C-j>',
             accept_word = '<M-w>',
@@ -43,6 +43,7 @@ return {
           ['.'] = false,
           ['avante'] = false, -- Disable in Avante buffers
         },
+        copilot_model = 'gpt-4.1-2025-04-14',
       }
 
       -- Enhanced suggestion styling
@@ -78,7 +79,8 @@ return {
         copilot = {
 
           endpoint = 'https://api.githubcopilot.com',
-          model = 'claude-sonnet-4',
+          -- model = 'claude-sonnet-4',
+          model = 'gpt-4.1-2025-04-14',
           proxy = nil, -- [protocol://]host[:port] Use this proxy
           allow_insecure = false, -- Allow insecure server connections
           timeout = 30000, -- Timeout in milliseconds
