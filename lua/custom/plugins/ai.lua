@@ -67,13 +67,14 @@ return {
     -- ⚠️ must add this setting! ! !
     build = 'make',
     event = 'VeryLazy',
-    version = false, -- Never set this value to "*"! Never!
+    version = 'v0.0.25', -- Never set this value to "*"! Never!
     ---@module 'avante'
     ---@type avante.Config
     opts = {
       -- add any opts here
       -- for example
-      provider = 'copilot',
+      mode = 'agentic',
+      provider = 'copilot', -- copilot or ollama
       auto_suggestions_enabled = false, -- enable auto suggestions
       providers = {
         copilot = {
@@ -89,6 +90,15 @@ return {
             temperature = 0.5,
             max_tokens = 20480,
           },
+        },
+        ollama = {
+          endpoint = 'http://localhost:11434',
+          -- model = 'qwq:32b',
+          model = 'devstral:24b', -- or 'deepseek-coder:24b'
+          disable_tools = true,
+          is_env_set = function()
+            return true
+          end,
         },
       },
     },
