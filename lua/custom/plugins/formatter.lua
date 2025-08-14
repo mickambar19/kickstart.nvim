@@ -105,11 +105,34 @@ return {
         bash = { 'shfmt' },
         sh = { 'shfmt' },
         go = { 'goimports', 'gofumpt' },
+        yaml = { 'prettier' },
+        ['yaml.ansible'] = { 'ansible_lint_fix' },
       },
       formatters = {
+        yamlfmt = {
+          command = 'yamlfmt',
+          args = { '-in' },
+          stdin = true,
+          condition = function(_, ctx)
+            return vim.fn.executable 'yamlfmt' == 1
+          end,
+        },
+
+        ansible_lint_fix = {
+          command = 'ansible-lint',
+          args = { '--fix', '$FILENAME' },
+          stdin = false,
+          async = true, -- if your formatter supports this
+        },
+
         prettier = {
           -- Only run prettier when config file exists
           condition = function(_, ctx)
+            local filetype = vim.bo[ctx.buf].filetype
+
+            if filetype:match 'yaml' or filetype == 'ansible' then
+              return true
+            end
             -- Check for dedicated prettier config files
             local byPrettierConfigFile = require('conform.util').root_file {
               '.prettierrc',

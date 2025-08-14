@@ -937,7 +937,9 @@ require('lazy').setup({
         'gofumpt', -- Go formatter
         'goimports', -- Go imports formatter
         'golangci-lint', -- Comprehensive Go linting
-        'ansible-lint',
+        -- 'ansible-lint',
+        'yq',
+        'yamlfmt',
         -- Python tools
         'ruff',
         'isort', -- Python import sorter
