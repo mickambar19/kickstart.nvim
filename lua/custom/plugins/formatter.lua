@@ -105,8 +105,8 @@ return {
         bash = { 'shfmt' },
         sh = { 'shfmt' },
         go = { 'goimports', 'gofumpt' },
-        yaml = { 'prettier' },
-        ['yaml.ansible'] = { 'ansible_lint_fix' },
+        yaml = { 'yamlfmt' },
+        ['yaml.ansible'] = { 'yamlfmt' },
       },
       formatters = {
         yamlfmt = {
@@ -118,11 +118,32 @@ return {
           end,
         },
 
-        ansible_lint_fix = {
+        ansible_lint = {
           command = 'ansible-lint',
-          args = { '--fix', '$FILENAME' },
-          stdin = false,
-          async = true, -- if your formatter supports this
+          args = { '--fix', '-' },
+          stdin = true,
+          condition = function(_, ctx)
+            -- Check if file is in an Ansible project
+            local ansible_files = {
+              'ansible.cfg',
+              'playbook.yml',
+              'playbooks/',
+              'roles/',
+              'inventory/',
+              'group_vars/',
+              'host_vars/',
+            }
+
+            for _, file in ipairs(ansible_files) do
+              if require('conform.util').root_file { file }(_, ctx) then
+                return true
+              end
+            end
+
+            -- Also check if filename suggests it's Ansible
+            local filename = vim.fn.fnamemodify(ctx.filename, ':t')
+            return filename:match 'playbook' or filename:match 'main%.ya?ml' or filename:match 'tasks%.ya?ml'
+          end,
         },
 
         prettier = {
