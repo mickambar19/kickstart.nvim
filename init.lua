@@ -146,8 +146,8 @@ vim.keymap.set('n', 'J', 'mzJ`z', { desc = 'Join lines and keep cursor position'
 
 vim.keymap.set('n', '<leader>fw', ':w<CR>', { desc = '[F]file [W]rite (save)' })
 vim.keymap.set('n', '<leader>fW', function()
-  local old_eventignore = vim.opt.eventignore
-  vim.opt.eventignore:extend { 'BufWritePre' }
+  local old_eventignore = vim.opt.eventignore:get()
+  vim.opt.eventignore:append 'BufWritePre'
   -- Save the file
   vim.cmd 'write'
   -- Restore previous eventignore setting
@@ -885,7 +885,9 @@ require('lazy').setup({
             python = {
               analysis = {
                 -- Ignore all files for analysis to exclusively use Ruff for linting
-                ignore = { '*' },
+                -- ignore = { '*' },
+                autoImportCompletions = true,
+                typeCheckingMode = 'basic',
               },
             },
           },
