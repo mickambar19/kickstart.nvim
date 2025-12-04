@@ -189,7 +189,13 @@ vim.api.nvim_create_autocmd('TextYankPost', {
     vim.hl.on_yank()
   end,
 })
-
+vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
+  pattern = { '*.tf', '*.tfvars', '*.hcl' },
+  callback = function()
+    vim.bo.filetype = 'terraform'
+  end,
+  desc = 'Set filetype for Terraform files',
+})
 -- Support ansible in certain folders
 vim.api.nvim_create_autocmd({ 'BufRead', 'BufNewFile' }, {
   pattern = { '*/playbooks/*.yml', '*/roles/*.yml', '*/tasks/*.yml', '*ansible*.yml', '*.yaml' },
@@ -894,7 +900,20 @@ require('lazy').setup({
         },
         bashls = {},
         gopls = {},
-        terraformls = {},
+        terraformls = {
+          filetypes = { 'terraform', 'terraform-vars', 'hcl' },
+          settings = {
+            terraform = {
+              experimentalFeatures = {
+                validateOnSave = true,
+                prefillRequiredFields = true,
+              },
+              validation = {
+                enableEnhancedValidation = true,
+              },
+            },
+          },
+        },
         ansiblels = {
           filetypes = { 'yaml.ansible', 'ansible' },
         },
@@ -949,6 +968,7 @@ require('lazy').setup({
         'debugpy',
         -- Bash
         'shfmt',
+        'terraform-ls',
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -1195,7 +1215,8 @@ vim.keymap.set({ 'i', 's' }, '<Tab>', function()
   end
 
   -- Fallback: Normal Tab (indentation)
-  vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Tab>', true, false, true), 'n', false)
+  local spaces = string.rep(' ', vim.bo.shiftwidth or vim.bo.tabstop or 2)
+  vim.api.nvim_put({ spaces }, 'c', false, true)
 end, { desc = 'Smart Tab: LuaSnip → Copilot → Completion → Indent' })
 
 -- Smart Shift+Tab for backward navigation
