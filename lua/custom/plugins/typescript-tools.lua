@@ -5,7 +5,7 @@ return {
     ft = { 'typescript', 'typescriptreact', 'javascript', 'javascriptreact' }, -- Lazy load only for JS/TS files
     opts = {
       -- Performance optimizations
-      single_file_support = false, -- Disable for better performance in projects
+      single_file_support = true, -- Disable for better performance in projects
 
       settings = {
         -- Faster completions
