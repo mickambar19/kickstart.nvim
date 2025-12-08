@@ -275,7 +275,7 @@ return {
     },
     keys = {
       {
-        '<leader>tc',
+        '<leader>tC',
         function()
           require('treesitter-context').toggle()
         end,

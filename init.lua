@@ -934,6 +934,17 @@ require('lazy').setup({
             },
           },
         },
+        emmet_ls = {
+          filetypes = { 'html', 'css', 'javascript', 'typescript', 'javascriptreact', 'typescriptreact', 'vue' },
+          settings = {
+            html = {
+              options = {
+                -- Emmet options
+                ['bem.enabled'] = true,
+              },
+            },
+          },
+        }
       }
 
       -- ensure the servers and tools above are installed
@@ -968,7 +979,7 @@ require('lazy').setup({
         'debugpy',
         -- Bash
         'shfmt',
-        'terraform-ls',
+        'terraform-ls'
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -1200,12 +1211,12 @@ vim.keymap.set({ 'i', 's' }, '<Tab>', function()
     return
   end
 
-  -- Priority 2: Copilot suggestion
-  local copilot_ok, copilot = pcall(require, 'copilot.suggestion')
-  if copilot_ok and copilot.is_visible() then
-    copilot.accept()
-    return
-  end
+  -- Priority 2: Copilot suggestion - Temporal avoid accepting suggestion with Tab
+  -- local copilot_ok, copilot = pcall(require, 'copilot.suggestion')
+  -- if copilot_ok and copilot.is_visible() then
+  --   copilot.accept()
+  --   return
+  -- end
 
   -- Priority 3: blink.cmp completion (if menu is open)
   local blink_ok, blink = pcall(require, 'blink.cmp')
