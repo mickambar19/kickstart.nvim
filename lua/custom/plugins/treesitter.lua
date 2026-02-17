@@ -42,6 +42,7 @@ return {
           'css',
           'scss',
           -- Other languages
+          'java',
           'python',
           'yaml',
           'toml',

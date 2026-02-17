@@ -107,6 +107,7 @@ return {
         go = { 'goimports', 'gofumpt' },
         yaml = { 'yamlfmt' },
         ['yaml.ansible'] = { 'yamlfmt' },
+        java = { 'google-java-format' },
       },
       formatters = {
         yamlfmt = {
@@ -239,6 +240,11 @@ return {
             '--semi',
             'false',
           },
+          stdin = true,
+        },
+        ['google-java-format'] = {
+          command = 'google-java-format',
+          args = { '--aosp', '-' }, -- AOSP style (4-space indent). Remove --aosp for Google style (2-space)
           stdin = true,
         },
       },
