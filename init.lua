@@ -348,7 +348,14 @@ require('lazy').setup({
   -- 'github/copilot.vim',
   'HiPhish/jinja.vim',
   -- NOTE: Plugins can be added with a link (or for a github repo: 'owner/repo' link).
-  'NMAC427/guess-indent.nvim', -- Detect tabstop and shiftwidth automatically
+  {
+    'NMAC427/guess-indent.nvim',
+    config = function()
+      require('guess-indent').setup {
+        auto_cmd = true,
+      }
+    end,
+  },
 
   -- NOTE: Plugins can also be added by using a table,
   -- with the first argument being the link and the following
